@@ -1,0 +1,84 @@
+@model CourseStatsViewModel
+@{
+    ViewData["Title"] = "Thống Kê Đào Tạo";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title text-dark fw-bold">Báo Cáo Tổng Quan Học Viên & Doanh Thu</h2>
+        <p class="page-description text-muted">Số liệu cập nhật thời gian thực về tình hình vận hành các lớp học tại trung tâm.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="/Courses">Quay lại danh sách</a> 
+</div>
+
+<div class="row row-cols-1 row-cols-md-5 g-3 mb-4 text-center">
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm bg-primary bg-opacity-10 py-3">
+            <h3 class="fw-bold text-primary">@Model.TotalCourses</h3>
+            <span class="text-muted small">Tổng Số Lớp Học</span>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm bg-success bg-opacity-10 py-3">
+            <h3 class="fw-bold text-success">@Model.TotalStudents</h3>
+            <span class="text-muted small">Tổng Lượt Học Viên</span>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm bg-info bg-opacity-10 py-3">
+            <h4 class="fw-bold text-info">@Model.TotalExpectedRevenueText</h4>
+            <span class="text-muted small">Tổng Doanh Thu Hiện Có</span> 
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm bg-danger bg-opacity-10 py-3">
+            <h3 class="fw-bold text-danger">@Model.FullCoursesCount</h3>
+            <span class="text-muted small">Lớp Đã Khóa Sĩ Số</span>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card h-100 border-0 shadow-sm bg-warning bg-opacity-10 py-3">
+            <h3 class="fw-bold text-warning">@Model.PendingCoursesCount</h3>
+            <span class="text-muted small">Lớp Sắp Đầy Cần Lưu Ý</span>
+        </div>
+    </div>
+</div>
+
+<div class="card card-body mb-4 shadow-sm border-start border-4 border-info">
+    <h5 class="fw-bold"><i class="bi bi-info-circle-fill"></i> Đánh Giá Vận Hành</h5>
+    @if (Model.FullCoursesCount > 0)
+    {
+        <p class="text-danger mb-0">Hệ thống ghi nhận có lớp học đã đầy sĩ số tối đa. Vui lòng rà soát điều phối phòng học lớn hoặc mở thêm các lớp dự phòng song song.</p>
+    }
+    else if (Model.PendingCoursesCount > 0) 
+    {
+        <p class="text-warning mb-0">Các lớp học đang ở trạng thái sắp đóng link đăng ký, bộ phận tư vấn tuyển sinh cần tập trung xử lý dứt điểm các hồ sơ đang chờ xét duyệt.</p>
+    }
+    else
+    {
+        <p class="text-success mb-0">Mọi chỉ số sĩ số và tuyển sinh tại trung tâm đang diễn ra vô cùng ổn định.</p>
+    }
+</div>
+
+<table class="table table-bordered bg-white shadow-sm">
+    <tr>
+        <th class="table-light" width="40%">Tổng số loại chương trình/lớp học mở:</th>
+        <td class="fw-bold">@Model.TotalCourses lớp</td> 
+    </tr>
+    <tr>
+        <th class="table-light">Tổng số lượng lượt đăng ký học viên:</th>
+        <td class="fw-bold">@Model.TotalStudents lượt</td>
+    </tr>
+    <tr>
+        <th class="table-light">Tổng số tiền học phí thu được:</th>
+        <td class="fw-bold text-success">@Model.TotalExpectedRevenueText</td> 
+    </tr>
+    <tr>
+        <th class="table-light">Số lượng lớp đã ngừng nhận học viên:</th>
+        <td class="fw-bold text-danger">@Model.FullCoursesCount lớp</td> 
+    </tr>
+    <tr>
+        <th class="table-light">Số lượng lớp sắp đóng link tuyển sinh:</th>
+        <td class="fw-bold text-warning">@Model.PendingCoursesCount lớp</td> 
+    </tr>
+</table>

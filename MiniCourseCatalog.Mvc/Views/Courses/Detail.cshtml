@@ -1,0 +1,77 @@
+@model CourseDetailViewModel 
+@{
+    ViewData["Title"] = "Chi Tiết Khóa Học";
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title text-success fw-bold">Chi Tiết Lớp Học</h2>
+        <p class="page-description text-muted">Thông tin quản trị vận hành nội bộ của lớp học.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="/Courses">Quay lại danh sách</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <table class="table table-bordered bg-white shadow-sm align-middle">
+            <tr>
+                <th class="table-light" width="30%">Mã Hệ Thống (ID)</th>
+                <td>@Model.Id</td>
+            </tr>
+            <tr>
+                <th class="table-light">Mã Khóa Học (Code)</th>
+                <td class="fw-bold text-primary">@Model.Code</td>
+            </tr>
+            <tr>
+                <th class="table-light">Tên Khóa Học</th>
+                <td class="fw-bold">@Model.Name</td>
+            </tr>
+            <tr>
+                <th class="table-light">Chuyên Ngành Học</th>
+                <td>@Model.Category</td>
+            </tr>
+            <tr>
+                <th class="table-light">Giảng Viên Phụ Trách</th>
+                <td class="fw-bold text-dark">@Model.Instructor</td>
+            </tr>
+            <tr>
+                <th class="table-light">Mức Học Phí</th>
+                <td class="text-danger fw-bold">@Model.TuitionFeeText</td>
+            </tr>
+            <tr>
+                <th class="table-light">Số Học Viên Đang Có</th>
+                <td>@Model.CurrentEnrollment học viên</td>
+            </tr>
+            <tr>
+                <th class="table-light">Giới Hạn Sĩ Số Lớp</th>
+                <td>@Model.MaxCapacity học viên</td>
+            </tr>
+            <tr>
+                <th class="table-light">Ngày Khai Giảng</th>
+                <td>@Model.StartDateText</td>
+            </tr>
+            <tr>
+                <th class="table-light">Doanh Thu Thu Được</th>
+                <td class="text-success fw-bold">@Model.TotalRevenueText</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card border-warning mb-3 shadow-sm bg-warning bg-opacity-10">
+            <div class="card-body">
+                <h5 class="card-title text-warning-dark fw-bold">Trạng Thái Lớp Học</h5>
+                <p class="card-text fs-4 fw-bold">@Model.CourseStatus</p>
+                <small class="text-muted">@Model.OperationalSuggestion</small> 
+            </div>
+        </div>
+
+        <div class="card border-info mb-3 shadow-sm bg-info bg-opacity-10">
+            <div class="card-body">
+                <h5 class="card-title text-info-dark fw-bold">Doanh Thu Hiện Tại</h5>
+                <p class="card-text fs-4 fw-bold text-primary">@Model.TotalRevenueText</p>
+                <small class="text-muted">Tính dựa trên số lượng học viên thực tế đã hoàn tất đóng học phí.</small>
+            </div>
+        </div>
+    </div>
+</div>

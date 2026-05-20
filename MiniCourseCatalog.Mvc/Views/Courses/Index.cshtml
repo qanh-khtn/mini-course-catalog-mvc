@@ -1,0 +1,64 @@
+@model List<CourseListItemViewModel> 
+@{
+    ViewData["Title"] = "Danh Mục Khóa Học";
+    var totalCount = Model.Count; 
+}
+
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="page-title text-primary fw-bold">Danh Mục Khóa Học Hiện Có</h2>
+        <p class="page-description text-muted">Trang hiển thị danh sách các lớp học đang và sắp tuyển sinh tại trung tâm.</p>
+    </div>
+    <div>
+        <a class="btn btn-outline-primary" href="/Courses/Stats">Xem Thống Kê Đào Tạo</a>
+    </div>
+</div>
+
+<div class="alert alert-info py-2">
+    <strong>Tổng số lớp học đang vận hành:</strong> @totalCount lớp 
+</div>
+
+@if (Model.Count == 0) 
+{
+    <p class="text-warning">Hiện tại chưa có khóa học nào được mở trong hệ thống.</p> 
+}
+else
+{
+    <table class="table table-bordered table-striped table-hover align-middle shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Mã Khóa Học</th>
+                <th>Tên Khóa Học</th>
+                <th>Phân Loại</th>
+                <th>Giảng Viên</th>
+                <th>Học Phí</th>
+                <th>Sĩ Số Lớp</th>
+                <th>Tình Trạng</th>
+                <th class="text-center">Thao Tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model) 
+            {
+                <tr>
+                    <td class="fw-bold text-secondary">@item.Code</td>
+                    <td class="fw-bold">@item.Name</td>
+                    <td>@item.Category</td>
+                    <td>@item.Instructor</td>
+                    <td class="text-success fw-bold">@item.TuitionFeeText</td>
+                    <td>@item.EnrollmentStatus</td>
+                    <td>
+                        <span class="@item.StatusClass p-2">@item.CourseStatus</span> 
+                    </td>
+                    <td class="text-center">
+                        <a class="btn btn-sm btn-primary" href="/Courses/Detail/@item.Id">Xem chi tiết</a> 
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<div class="mt-4">
+    <a class="btn btn-secondary" href="/">Quay lại trang chủ</a>
+</div>

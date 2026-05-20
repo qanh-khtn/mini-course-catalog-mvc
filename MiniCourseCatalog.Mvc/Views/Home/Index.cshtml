@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Trang Chủ";
+}
+
+<div class="lab-hero">
+    <h1>Mini Training Center Catalog</h1>
+    <p>
+        Hệ thống quản lý nội bộ dành cho Trung tâm Đào tạo.<br />
+        Xem nhanh danh sách khóa học, tình trạng tuyển sinh và doanh thu dự kiến.
+    </p>
+</div>
+
+<div class="info-panel">
+    <h4>Mục tiêu cốt lõi của hệ thống</h4>
+    <p>Áp dụng mô hình MVC (Model-View-Controller) để bóc tách rõ ràng luồng dữ liệu quản lý giáo dục.</p>
+    
+    <h5 class="mt-4">Luồng xử lý chính</h5>
+    <ol class="flow-list">
+        <li>1. Người dùng truy cập URL.</li>
+        <li>2. <strong>CoursesController</strong> tiếp nhận yêu cầu.</li>
+        <li>3. Controller gọi <strong>CourseService</strong> để lấy dữ liệu các lớp học.</li>
+        <li>4. Dữ liệu được đóng gói vào các <strong>ViewModel</strong> chuyên biệt.</li>
+        <li>5. <strong>View (Razor)</strong> render giao diện HTML hoàn chỉnh và trả về trình duyệt.</li>
+    </ol>
+</div>
+
+<div class="text-center mt-4">
+    <a class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold" href="/Courses">
+        Đi đến Danh mục Khóa học
+    </a>
+</div>
