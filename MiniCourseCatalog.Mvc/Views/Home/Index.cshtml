@@ -1,8 +1,23 @@
-﻿@{
+@{
     ViewData["Title"] = "Trang Chủ";
+    var currentTheme = ViewData["Theme"]?.ToString() ?? "light";
+    var nextTheme = currentTheme == "light" ? "dark" : "light";
+    var btnText = currentTheme == "light" ? "Giao diện Tối" : "Giao diện Sáng";
 }
 
 <div class="lab-hero">
+    <div class="hero-controls">
+        <a href="/?theme=@nextTheme" class="modern-theme-switch shadow-sm pointer" title="@btnText" data-theme-toggle data-next-theme="@nextTheme">
+            <span class="switch-track @(currentTheme == "dark" ? "track-dark" : "track-light")">
+                <span class="switch-symbol switch-symbol-sun"></span>
+                <span class="switch-symbol switch-symbol-moon"></span>
+                <span class="switch-thumb @(currentTheme == "dark" ? "thumb-dark" : "thumb-light")">
+                    <span class="switch-thumb-icon"></span>
+                </span>
+            </span>
+        </a>
+    </div>
+
     <h1>Mini Training Center Catalog</h1>
     <p>
         Hệ thống quản lý nội bộ dành cho Trung tâm Đào tạo.<br />
@@ -13,7 +28,7 @@
 <div class="info-panel">
     <h4>Mục tiêu cốt lõi của hệ thống</h4>
     <p>Áp dụng mô hình MVC (Model-View-Controller) để bóc tách rõ ràng luồng dữ liệu quản lý giáo dục.</p>
-    
+
     <h5 class="mt-4">Luồng xử lý chính</h5>
     <ol class="flow-list">
         <li>1. Người dùng truy cập URL.</li>
@@ -25,7 +40,7 @@
 </div>
 
 <div class="text-center mt-4">
-    <a class="btn btn-primary btn-lg px-5 py-3 rounded-pill fw-bold" href="/Courses">
+    <a class="btn app-btn app-btn-primary btn-lg px-5 py-3 fw-bold" href="/Courses?theme=@currentTheme">
         Đi đến Danh mục Khóa học
     </a>
 </div>

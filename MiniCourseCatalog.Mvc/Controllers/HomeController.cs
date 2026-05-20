@@ -6,8 +6,9 @@ namespace MiniCourseCatalog.Mvc.Controllers;
 
 public class HomeController : Controller
 {
-    public IActionResult Index()
+    public IActionResult Index(string theme = "light")
     {
+        ViewData["Theme"] = NormalizeTheme(theme);
         return View();
     }
 
@@ -20,5 +21,9 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+    private static string NormalizeTheme(string theme)
+    {
+        return string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
     }
 }

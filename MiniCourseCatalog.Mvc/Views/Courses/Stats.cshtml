@@ -1,84 +1,143 @@
 @model CourseStatsViewModel
 @{
     ViewData["Title"] = "Thống Kê Đào Tạo";
+    var currentTheme = ViewData["Theme"]?.ToString() ?? "light";
+    var nextTheme = currentTheme == "light" ? "dark" : "light";
+    var btnText = currentTheme == "light" ? "Giao diện Tối" : "Giao diện Sáng";
+    var themeIconClass = currentTheme == "light" ? "theme-icon-moon" : "theme-icon-sun";
+    var overallFillRateWidth = Model.OverallFillRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
 
-<div class="page-header d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="page-title text-dark fw-bold">Báo Cáo Tổng Quan Học Viên & Doanh Thu</h2>
-        <p class="page-description text-muted">Số liệu cập nhật thời gian thực về tình hình vận hành các lớp học tại trung tâm.</p>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-extrabold text-dark m-0">Báo Cáo Hoạt Động Kế Toán & Đào Tạo</h2>
+            <p class="text-muted m-0">Tổng hợp dữ liệu doanh thu học phí và mật độ phân bổ học viên thực tế.</p>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <a href="/Courses/Stats?theme=@nextTheme" class="modern-theme-switch shadow-sm pointer" title="@btnText" data-theme-toggle data-next-theme="@nextTheme">
+                <span class="switch-track @(currentTheme == "dark" ? "track-dark" : "track-light")">
+                    <span class="switch-symbol switch-symbol-sun"></span>
+                    <span class="switch-symbol switch-symbol-moon"></span>
+                    <span class="switch-thumb @(currentTheme == "dark" ? "thumb-dark" : "thumb-light")">
+                        <span class="switch-thumb-icon"></span>
+                    </span>
+                </span>
+            </a>
+            <a class="btn btn-outline-secondary rounded-3 px-3 fw-bold" href="/Courses?theme=@currentTheme">Quay lại</a>
+        </div>
     </div>
-    <a class="btn btn-outline-secondary" href="/Courses">Quay lại danh sách</a> 
-</div>
 
-<div class="row row-cols-1 row-cols-md-5 g-3 mb-4 text-center">
-    <div class="col">
-        <div class="card h-100 border-0 shadow-sm bg-primary bg-opacity-10 py-3">
-            <h3 class="fw-bold text-primary">@Model.TotalCourses</h3>
-            <span class="text-muted small">Tổng Số Lớp Học</span>
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary text-white position-relative overflow-hidden">
+                <div class="position-absolute end-0 bottom-0 opacity-10" style="font-size: 5rem; transform: translate(10px, 20px);"><i class="bi bi-wallet2"></i></div>
+                <span class="text-white-50 text-uppercase small fw-bold tracking-wider">Doanh thu hiện tại</span>
+                <h2 class="mt-2 mb-0 fw-bold">@Model.TotalExpectedRevenueText</h2>
+                <div class="mt-2 small text-white-50">Tổng số tiền thực thu từ học viên</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-dark">
+                <span class="text-muted text-uppercase small fw-bold tracking-wider">Tổng số lượt học viên</span>
+                <h2 class="mt-2 mb-0 fw-bold text-dark">@Model.TotalStudents <span class="fs-5 fw-normal text-muted">lượt</span></h2>
+                <div class="mt-2 small text-success fw-bold">
+                    <i class="bi bi-person-fill"></i> Phân bổ trên @Model.TotalCourses lớp học đang mở
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white text-dark position-relative overflow-hidden">
+                <span class="text-muted text-uppercase small fw-bold tracking-wider">Giảng viên tiêu biểu</span>
+                <h2 class="mt-2 mb-0 fw-bold text-primary text-truncate">@Model.TopInstructor</h2>
+                <div class="mt-2 small text-muted">Sở hữu lượng học viên đăng ký đông nhất</div>
+            </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card h-100 border-0 shadow-sm bg-success bg-opacity-10 py-3">
-            <h3 class="fw-bold text-success">@Model.TotalStudents</h3>
-            <span class="text-muted small">Tổng Lượt Học Viên</span>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3">Hiệu Suất Lấp Đầy Phòng Học (Fill Rate)</h5>
+                <p class="text-muted small">Tỷ lệ biểu thị phần trăm số ghế đã có học viên đăng ký chỗ ngồi trên tổng quy mô phòng ốc trung tâm.</p>
+                
+                <div class="my-4 text-center">
+                    <h1 class="display-3 fw-extrabold text-primary m-0">@Model.OverallFillRate%</h1>
+                    <span class="text-muted small">Mật độ lấp đầy trung bình</span>
+                </div>
+
+                <div class="progress rounded-pill mb-3" style="height: 12px;">
+                    <div class="progress-bar bg-gradient bg-primary" style="width: @overallFillRateWidth%"></div>
+                </div>
+                
+                <div class="card card-body bg-light border-0 rounded-3 mt-auto">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="fs-3 text-warning"><i class="bi bi-lightning-charge-fill"></i></div>
+                        <div class="small text-muted">
+                            @if (Model.FullCoursesCount > 0) {
+                                <span>Có <strong>@Model.FullCoursesCount lớp đã khóa sổ</strong>. Cần liên hệ bộ phận học vụ để sắp xếp lịch mở thêm lớp mới (Giai đoạn dự phòng).</span>
+                            } else {
+                                <span>Tốc độ tuyển sinh đang duy trì đều đặn, không có lớp nào bị tồn đọng hồ sơ quá hạn.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3">Phân Tích Chỉ Số Trạng Thái Nghiệp Vụ</h5>
+                <ul class="list-group list-group-flush small status-metric-list">
+                    <li class="list-group-item status-metric-item d-flex justify-content-between align-items-center px-0 py-3">
+                        <span class="text-muted">Tổng số lớp học hiện diện</span>
+                        <span class="fw-bold text-dark fs-6">@Model.TotalCourses lớp</span>
+                    </li>
+                    <li class="list-group-item status-metric-item d-flex justify-content-between align-items-center px-0 py-3">
+                        <span class="text-muted">Lớp học tuyển sinh đủ chỉ tiêu (Khóa sổ)</span>
+                        <span class="badge bg-danger rounded-pill px-3 py-2 fw-bold">@Model.FullCoursesCount lớp</span>
+                    </li>
+                    <li class="list-group-item status-metric-item d-flex justify-content-between align-items-center px-0 py-3">
+                        <span class="text-muted">Lớp học chạm ngưỡng cảnh báo (Sắp kín chỗ)</span>
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold">@Model.PendingCoursesCount lớp</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
-    <div class="col">
-        <div class="card h-100 border-0 shadow-sm bg-info bg-opacity-10 py-3">
-            <h4 class="fw-bold text-info">@Model.TotalExpectedRevenueText</h4>
-            <span class="text-muted small">Tổng Doanh Thu Hiện Có</span> 
+
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white mt-4 category-stats-card">
+        <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+            <div>
+                <h5 class="fw-bold text-dark mb-1">Thống Kê Theo Danh Mục</h5>
+                <p class="text-muted small mb-0">So sánh số lớp, học viên, doanh thu và tỷ lệ lấp đầy theo từng chuyên ngành.</p>
+            </div>
+            <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2 fw-bold">@Model.CategoryStats.Count nhóm</span>
         </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-0 shadow-sm bg-danger bg-opacity-10 py-3">
-            <h3 class="fw-bold text-danger">@Model.FullCoursesCount</h3>
-            <span class="text-muted small">Lớp Đã Khóa Sĩ Số</span>
-        </div>
-    </div>
-    <div class="col">
-        <div class="card h-100 border-0 shadow-sm bg-warning bg-opacity-10 py-3">
-            <h3 class="fw-bold text-warning">@Model.PendingCoursesCount</h3>
-            <span class="text-muted small">Lớp Sắp Đầy Cần Lưu Ý</span>
+
+        <div class="row g-3">
+            @foreach (var item in Model.CategoryStats)
+            {
+                var categoryFillRateWidth = item.FillRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                <div class="col-md-6 col-xl-4">
+                    <div class="category-card h-100 rounded-4 p-3">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <div class="fw-bold text-dark">@item.Category</div>
+                                <div class="text-muted small">@item.CourseCount lớp · @item.StudentCount/@item.Capacity học viên</div>
+                            </div>
+                            <span class="badge bg-light text-dark border rounded-pill">@item.FillRate%</span>
+                        </div>
+                        <div class="progress rounded-pill mb-3" style="height: 8px;">
+                            <div class="progress-bar bg-primary" style="width: @categoryFillRateWidth%"></div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center small">
+                            <span class="text-muted">Doanh thu</span>
+                            <span class="fw-bold text-success">@item.RevenueText</span>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
-
-<div class="card card-body mb-4 shadow-sm border-start border-4 border-info">
-    <h5 class="fw-bold"><i class="bi bi-info-circle-fill"></i> Đánh Giá Vận Hành</h5>
-    @if (Model.FullCoursesCount > 0)
-    {
-        <p class="text-danger mb-0">Hệ thống ghi nhận có lớp học đã đầy sĩ số tối đa. Vui lòng rà soát điều phối phòng học lớn hoặc mở thêm các lớp dự phòng song song.</p>
-    }
-    else if (Model.PendingCoursesCount > 0) 
-    {
-        <p class="text-warning mb-0">Các lớp học đang ở trạng thái sắp đóng link đăng ký, bộ phận tư vấn tuyển sinh cần tập trung xử lý dứt điểm các hồ sơ đang chờ xét duyệt.</p>
-    }
-    else
-    {
-        <p class="text-success mb-0">Mọi chỉ số sĩ số và tuyển sinh tại trung tâm đang diễn ra vô cùng ổn định.</p>
-    }
-</div>
-
-<table class="table table-bordered bg-white shadow-sm">
-    <tr>
-        <th class="table-light" width="40%">Tổng số loại chương trình/lớp học mở:</th>
-        <td class="fw-bold">@Model.TotalCourses lớp</td> 
-    </tr>
-    <tr>
-        <th class="table-light">Tổng số lượng lượt đăng ký học viên:</th>
-        <td class="fw-bold">@Model.TotalStudents lượt</td>
-    </tr>
-    <tr>
-        <th class="table-light">Tổng số tiền học phí thu được:</th>
-        <td class="fw-bold text-success">@Model.TotalExpectedRevenueText</td> 
-    </tr>
-    <tr>
-        <th class="table-light">Số lượng lớp đã ngừng nhận học viên:</th>
-        <td class="fw-bold text-danger">@Model.FullCoursesCount lớp</td> 
-    </tr>
-    <tr>
-        <th class="table-light">Số lượng lớp sắp đóng link tuyển sinh:</th>
-        <td class="fw-bold text-warning">@Model.PendingCoursesCount lớp</td> 
-    </tr>
-</table>

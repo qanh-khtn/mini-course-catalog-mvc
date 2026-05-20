@@ -1,6 +1,9 @@
 @model CourseDetailViewModel 
 @{
     ViewData["Title"] = "Chi Tiết Khóa Học";
+    var currentTheme = ViewData["Theme"]?.ToString() ?? "light";
+    var nextTheme = currentTheme == "light" ? "dark" : "light";
+    var btnText = currentTheme == "light" ? "Giao diện Tối" : "Giao diện Sáng";
 }
 
 <div class="page-header d-flex justify-content-between align-items-center mb-4">
@@ -8,7 +11,18 @@
         <h2 class="page-title text-success fw-bold">Chi Tiết Lớp Học</h2>
         <p class="page-description text-muted">Thông tin quản trị vận hành nội bộ của lớp học.</p>
     </div>
-    <a class="btn btn-outline-secondary" href="/Courses">Quay lại danh sách</a>
+    <div class="d-flex align-items-center gap-3">
+        <a href="/Courses/Detail/@Model.Id?theme=@nextTheme" class="modern-theme-switch shadow-sm pointer" title="@btnText" data-theme-toggle data-next-theme="@nextTheme">
+            <span class="switch-track @(currentTheme == "dark" ? "track-dark" : "track-light")">
+                <span class="switch-symbol switch-symbol-sun"></span>
+                <span class="switch-symbol switch-symbol-moon"></span>
+                <span class="switch-thumb @(currentTheme == "dark" ? "thumb-dark" : "thumb-light")">
+                    <span class="switch-thumb-icon"></span>
+                </span>
+            </span>
+        </a>
+        <a class="btn btn-outline-secondary" href="/Courses?theme=@currentTheme">Quay lại danh sách</a>
+    </div>
 </div>
 
 <div class="row">

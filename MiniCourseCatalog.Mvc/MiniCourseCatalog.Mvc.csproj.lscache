@@ -71,7 +71,9 @@ obj/Debug/net10.0/
 Program.cs
 Services/CourseService.cs
 ViewModels/
+ CategoryStatsViewModel.cs
  CourseDetailViewModel.cs
+ CourseIndexViewModel.cs
  CourseListItemViewModel.cs
  CourseStatsViewModel.cs
 

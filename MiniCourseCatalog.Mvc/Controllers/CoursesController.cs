@@ -13,10 +13,35 @@ public class CoursesController : Controller
         _courseService = courseService; 
     }
 
-    public IActionResult Index()
+    public IActionResult Index(string keyword = "", string category = "", string theme = "light")
     {
-        var rawCourses = _courseService.GetAll(); 
-        var viewModels = rawCourses.Select(c => new CourseListItemViewModel
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        var rawCourses = _courseService.GetAll();
+        var categories = rawCourses
+            .Select(c => c.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+
+        var filteredCourses = rawCourses.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            filteredCourses = filteredCourses.Where(c =>
+                c.Code.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                c.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                c.Instructor.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            filteredCourses = filteredCourses.Where(c =>
+                string.Equals(c.Category, category, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var courseItems = filteredCourses.Select(c => new CourseListItemViewModel
         {
             Id = c.Id,
             Code = c.Code,
@@ -28,11 +53,24 @@ public class CoursesController : Controller
             MaxCapacity = c.MaxCapacity
         }).ToList();
 
-        return View(viewModels); 
+        var viewModel = new CourseIndexViewModel
+        {
+            Courses = courseItems,
+            Categories = categories,
+            Keyword = keyword,
+            Category = category,
+            Theme = theme,
+            TotalCoursesBeforeFilter = rawCourses.Count
+        };
+
+        return View(viewModel);
     }
 
-    public IActionResult Detail(int id)
+    public IActionResult Detail(int id, string theme = "light")
     {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
         var course = _courseService.GetById(id);
         if (course == null)
         {
@@ -55,8 +93,11 @@ public class CoursesController : Controller
         return View(detailVm);
     }
 
-    public IActionResult Stats()
+    public IActionResult Stats(string theme = "light")
     {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
         var statsVm = _courseService.GetStats(); 
         return View(statsVm);
     }
@@ -85,5 +126,10 @@ public class CoursesController : Controller
     public IActionResult CategoryInfo()
     {
         return Content("Danh mục hiện có: Khoa học Cơ bản, Công nghệ Thông tin, AI & Data Science, Ngoại Ngữ, Marketing, Thiết kế đồ họa");
+    }
+
+    private static string NormalizeTheme(string theme)
+    {
+        return string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
     }
 }
