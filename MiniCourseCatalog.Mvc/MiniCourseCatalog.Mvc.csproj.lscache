@@ -72,9 +72,11 @@ Program.cs
 Services/CourseService.cs
 ViewModels/
  CategoryStatsViewModel.cs
+ CourseCreateViewModel.cs
  CourseDetailViewModel.cs
  CourseIndexViewModel.cs
  CourseListItemViewModel.cs
+ CourseSearchViewModel.cs
  CourseStatsViewModel.cs
 
 [metadataReferences]
@@ -421,15 +423,21 @@ obj/Debug/net10.0/MiniCourseCatalog.Mvc.GeneratedMSBuildEditorConfig.editorconfi
 
 [additionalFiles]
 Views/Courses/
+ Create.cshtml
  Detail.cshtml
  Index.cshtml
+ Search.cshtml
  Stats.cshtml
+ _CourseStatusBadge.cshtml
 Views/Home/
  Index.cshtml
  Privacy.cshtml
 Views/Shared/
  Error.cshtml
+ _CourseCard.cshtml
+ _CourseSearchResultList.cshtml
  _Layout.cshtml
+ _SearchFilterForm.cshtml
  _ValidationScriptsPartial.cshtml
 Views/
  _ViewImports.cshtml
@@ -437,15 +445,21 @@ Views/
 
 [dynamicFiles]
 Views/Courses/
+ Create.cshtml
  Detail.cshtml
  Index.cshtml
+ Search.cshtml
  Stats.cshtml
+ _CourseStatusBadge.cshtml
 Views/Home/
  Index.cshtml
  Privacy.cshtml
 Views/Shared/
  Error.cshtml
+ _CourseCard.cshtml
+ _CourseSearchResultList.cshtml
  _Layout.cshtml
+ _SearchFilterForm.cshtml
  _ValidationScriptsPartial.cshtml
 Views/
  _ViewImports.cshtml

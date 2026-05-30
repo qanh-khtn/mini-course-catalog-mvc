@@ -66,4 +66,43 @@ public class CourseService
             CategoryStats = categoryStats
         };
     }
+
+    public void Add(Course course)
+    {
+        var nextId = _courses.Count == 0 ? 1 : _courses.Max(c => c.Id) + 1;
+        course.Id = nextId;
+        _courses.Add(course);
+    }
+
+    // Hàm Search
+    public List<Course> Search(string keyword, string category)
+    {
+        var query = _courses.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            query = query.Where(c =>
+                c.Code.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                c.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                c.Instructor.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(category))
+        {
+            query = query.Where(c =>
+                string.Equals(c.Category, category, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return query.ToList();
+    }
+
+    // Hàm lấy danh mục
+    public List<string> GetCategories()
+    {
+        return _courses
+            .Select(c => c.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToList();
+    }
 }

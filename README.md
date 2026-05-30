@@ -1,12 +1,12 @@
 # Mini Training Center Course Catalog MVC
 
-Ứng dụng ASP.NET Core MVC quản lý danh mục khóa học cho một trung tâm đào tạo nhỏ. Project được thực hiện cho Lab02 - MVC Foundations, dựa trên yêu cầu xây dựng lại bài mẫu Product Catalog theo một chủ đề mới có mức độ tương đương.
+Ứng dụng ASP.NET Core MVC quản lý danh mục khóa học cho một trung tâm đào tạo nhỏ. Project được phát triển tiếp từ Lab02 và nâng cấp theo yêu cầu Lab03 - Layout, Partial View, Tag Helpers & Model Binding.
 
 ## Chủ đề
 
 **Mini Training Center Course Catalog MVC**
 
-Hệ thống hỗ trợ xem danh sách khóa học, chi tiết từng lớp, thống kê tổng quan tình hình đào tạo, doanh thu học phí và trạng thái tuyển sinh của các lớp học.
+Hệ thống hỗ trợ xem danh sách khóa học, xem chi tiết lớp học, thống kê tình hình đào tạo, tìm kiếm khóa học và thêm khóa học mới thông qua form có validation.
 
 ## Công nghệ sử dụng
 
@@ -14,10 +14,12 @@ Hệ thống hỗ trợ xem danh sách khóa học, chi tiết từng lớp, th�
 - C#
 - Razor View Engine
 - Bootstrap 5
+- Bootstrap Icons
 - HTML, CSS, JavaScript
 - LINQ
+- DataAnnotations
 
-## Cấu trúc chính
+## Cấu trúc chính sau Lab03
 
 ```text
 MiniCourseCatalog.Mvc
@@ -29,108 +31,121 @@ MiniCourseCatalog.Mvc
 ├── Services
 │   └── CourseService.cs
 ├── ViewModels
-│   ├── CourseListItemViewModel.cs
+│   ├── CategoryStatsViewModel.cs
+│   ├── CourseCreateViewModel.cs
 │   ├── CourseDetailViewModel.cs
-│   ├── CourseStatsViewModel.cs
 │   ├── CourseIndexViewModel.cs
-│   └── CategoryStatsViewModel.cs
+│   ├── CourseListItemViewModel.cs
+│   ├── CourseSearchViewModel.cs
+│   └── CourseStatsViewModel.cs
 ├── Views
-│   ├── Home
 │   ├── Courses
+│   │   ├── Create.cshtml
+│   │   ├── Detail.cshtml
+│   │   ├── Index.cshtml
+│   │   ├── Search.cshtml
+│   │   ├── Stats.cshtml
+│   │   └── _CourseStatusBadge.cshtml
+│   ├── Home
+│   │   └── Index.cshtml
 │   └── Shared
+│       ├── _CourseCard.cshtml
+│       ├── _CourseSearchResultList.cshtml
+│       ├── _Layout.cshtml
+│       ├── _SearchFilterForm.cshtml
+│       └── _ValidationScriptsPartial.cshtml
 └── wwwroot
     ├── css
     └── js
 ```
 
-## Chức năng cơ bản (Yêu cầu Lab02)
+## Chức năng đã hoàn thành theo Lab03
 
-- Trang chủ giới thiệu bài toán quản lý khóa học.
-- Trang danh sách khóa học tại `/Courses`.
-- Trang chi tiết khóa học tại `/Courses/Detail/{id}`.
-- Trang thống kê tổng quan tại `/Courses/Stats`.
+### 1. Layout dùng chung
+
+- Cập nhật `Views/Shared/_Layout.cshtml` làm khung giao diện chung cho toàn bộ website.
+- Menu điều hướng dùng Tag Helpers, gồm: Trang chủ, Khóa học, Thống kê, Tìm kiếm, Thêm khóa học.
+- Thêm nút chuyển giao diện sáng/tối dùng chung trên navbar.
+
+### 2. Partial View tái sử dụng giao diện
+
+- Tạo `Views/Shared/_CourseCard.cshtml` để hiển thị từng khóa học dưới dạng card.
+- Refactor trang `/Courses` để render danh sách bằng Partial View thay vì viết toàn bộ HTML trực tiếp trong view.
+- Tạo `Views/Shared/_CourseSearchResultList.cshtml` để tách phần hiển thị kết quả tìm kiếm.
+- Tạo `Views/Shared/_SearchFilterForm.cshtml` để tái sử dụng form lọc nhanh khi cần.
+
+### 3. Trang danh sách khóa học
+
+- Route: `/Courses`
+- Hiển thị danh sách khóa học bằng card grid.
+- Mỗi card có mã khóa học, tên khóa học, chuyên ngành, giảng viên, học phí, sĩ số và nút xem chi tiết.
+- Có hiển thị thông báo thành công từ `TempData` sau khi thêm khóa học mới.
+
+### 4. Tìm kiếm khóa học bằng form GET
+
+- Route: `/Courses/Search`
+- ViewModel: `CourseSearchViewModel`
+- Action: `CoursesController.Search(string keyword, string category, string theme)`
+- Form dùng phương thức `GET`, nhận dữ liệu từ Query String.
+- Hỗ trợ tìm kiếm theo mã khóa học, tên khóa học và giảng viên.
+- Hỗ trợ lọc theo chuyên ngành.
+- Kết quả tìm kiếm được render bằng partial `_CourseSearchResultList.cshtml`.
+- Nếu không có kết quả, hệ thống hiển thị thông báo cảnh báo màu vàng.
+
+### 5. Thêm khóa học bằng form POST
+
+- Route: `/Courses/Create`
+- ViewModel: `CourseCreateViewModel`
+- Có action GET `Create` để hiển thị form.
+- Có action POST `Create` để nhận dữ liệu submit.
+- Form dùng Tag Helpers: `asp-for`, `asp-validation-for`, `asp-controller`, `asp-action`.
+- Có nhiều hơn 4 field nhập liệu: mã khóa học, tên khóa học, chuyên ngành, giảng viên, học phí, số học viên hiện tại, sức chứa tối đa, ngày khai giảng.
+- Dùng DataAnnotations để validation: `Required`, `StringLength`, `Range`, `DataType`.
+- Dùng `ModelState.IsValid` để kiểm tra dữ liệu hợp lệ.
+- Kiểm tra thêm nghiệp vụ: số học viên hiện tại không được lớn hơn sức chứa tối đa.
+- Sau khi thêm thành công, dùng `TempData` để báo thành công và `RedirectToAction(nameof(Index))` để quay về danh sách.
+- Dữ liệu mới được thêm bằng `CourseService.Add()` và xuất hiện trong danh sách khi ứng dụng đang chạy.
+
+### 6. Tag Helpers và Model Binding
+
+- Dùng Anchor Tag Helpers trong layout, card, search, create và detail.
+- Dùng Form Tag Helpers trong Search và Create.
+- Model Binding từ Query String: `keyword`, `category`, `theme`.
+- Model Binding từ Form POST: `CourseCreateViewModel`.
+
+## Chức năng từ Lab02 vẫn giữ lại
+
+- Trang chủ giới thiệu hệ thống.
+- Trang chi tiết khóa học: `/Courses/Detail/{id}`.
+- Trang thống kê: `/Courses/Stats`.
 - Action trả về text bằng `Content()`: `/Courses/Welcome`.
 - Action trả về JSON bằng `Json()`: `/Courses/CourseJson`.
 - Action chuyển hướng bằng `RedirectToAction()`: `/Courses/GoToList`.
 - Action xử lý không tìm thấy dữ liệu bằng `NotFound()`: `/Courses/Detail/999` và `/Courses/Force404`.
-- Phân loại trạng thái khóa học theo nghiệp vụ: Đã đầy lớp, Sắp kín chỗ, Lớp vắng học viên, Còn chỗ đăng ký.
 
----
+## Tính năng mở rộng đã làm thêm
 
-## Các Tính Năng Mở Rộng (Điểm Cộng)
+- Dark/Light theme switcher bằng query string `theme`.
+- Giao diện card hiện đại cho danh sách khóa học.
+- Thống kê nâng cao: tổng doanh thu, tổng lượt học viên, giảng viên tiêu biểu, tỷ lệ lấp đầy trung bình.
+- Thống kê theo danh mục chuyên ngành: số lớp, số học viên, sức chứa, doanh thu, tỷ lệ lấp đầy.
+- Trạng thái nghiệp vụ cho khóa học: Đã đầy lớp, Sắp kín chỗ, Lớp vắng học viên, Còn chỗ đăng ký.
+- Tách kết quả tìm kiếm thành partial riêng.
+- Hiển thị box cảnh báo khi không tìm thấy khóa học phù hợp.
 
-Ngoài các yêu cầu cơ bản, hệ thống được phát triển thêm các tính năng nâng cao sau:
-
-### 1. Tìm kiếm và lọc khóa học
-Trang `/Courses` hỗ trợ:
-- Tìm kiếm linh hoạt theo mã khóa học, tên khóa học hoặc tên giảng viên.
-- Lọc danh sách theo chuyên ngành đào tạo.
-- Kết hợp đồng thời tìm kiếm, lọc và chế độ giao diện sáng/tối trên cùng một URL (VD: `/Courses?keyword=c%23&theme=dark`).
-
-### 2. Thống kê nâng cao
-Trang `/Courses/Stats` được mở rộng thêm các chỉ số quản trị:
-- Tổng doanh thu hiện tại dự kiến.
-- Tổng lượt đăng ký học viên.
-- **Giảng viên tiêu biểu** có lượng học viên đăng ký đông nhất.
-- **Tỷ lệ lấp đầy (Fill Rate) trung bình** của toàn bộ trung tâm.
-
-### 3. Thống kê theo danh mục chuyên ngành
-Hệ thống hiển thị dashboard thống kê chi tiết cho từng nhóm ngành (AI & Data Science, Ngoại Ngữ, Marketing...):
-- Tỷ lệ lấp đầy theo từng danh mục (Hiển thị qua Progress Bar).
-- Doanh thu mang lại từ từng nhóm ngành.
-
-### 4. Theme Switcher (Sáng/Tối) bằng Controller
-Ứng dụng tích hợp chế độ Dark/Light Mode thông qua tham số `theme` trên URL:
-- Chuyển đổi trạng thái bằng nút Toggle Switch trực quan.
-- Theme được Controller tiếp nhận, truyền sang View qua `ViewData` và đồng bộ vào thẻ `body` tại `_Layout`.
-- Giữ nguyên trạng thái Theme khi điều hướng qua lại giữa các trang.
-
----
-
-## Screenshots (Giao diện thực tế)
-
-### 1. Trang Danh mục khóa học (Course List)
-Hỗ trợ tìm kiếm, lọc danh mục và hiển thị tỷ lệ lấp đầy trực quan.
-
-**Chế độ Sáng (Light Mode)**
-![Course List Light](screenshots/course-list-light.jpeg)
-
-**Chế độ Tối (Dark Mode)**
-![Course List Dark](screenshots/course-list-dark.jpeg)
-
-### 2. Trang Thống kê Đào tạo (Dashboard)
-Hiển thị tổng quan doanh thu, giảng viên tiêu biểu và phân tích dữ liệu theo chuyên ngành.
-
-**Chế độ Sáng (Light Mode)**
-![Stats Light](screenshots/stats-light.jpeg)
-
-**Chế độ Tối (Dark Mode)**
-![Stats Dark](screenshots/stats-dark.jpeg)
-
----
-
-## Hướng dẫn chạy Project
-
-Mở terminal tại thư mục project (Nơi chứa file `.csproj`):
-
-```powershell
-cd MiniCourseCatalog.Mvc
-dotnet run
-```
-Sau đó mở trình duyệt theo URL được hiển thị trong terminal (ví dụ: `http://localhost:5063`).
-
-## Các URL dùng để kiểm thử (Testing URLs)
+## Các URL kiểm thử
 
 ```text
 /
 /Courses
 /Courses?theme=dark
-/Courses?keyword=c%23
-/Courses?category=Marketing
 /Courses/Detail/1
 /Courses/Detail/999
 /Courses/Stats
-/Courses/Stats?theme=dark
+/Courses/Search
+/Courses/Search?keyword=data
+/Courses/Search?category=Marketing
+/Courses/Create
 /Courses/Welcome
 /Courses/CourseJson
 /Courses/GoToList
@@ -138,11 +153,23 @@ Sau đó mở trình duyệt theo URL được hiển thị trong terminal (ví 
 /Courses/CategoryInfo
 ```
 
-## Ghi chú Troubleshooting
+## Hướng dẫn chạy project
 
-- Nếu sau khi sửa đổi mã HTML/CSS mà trình duyệt chưa cập nhật, hãy nhấn `Ctrl + F5` để xóa cache.
-- Nếu `dotnet run` báo lỗi file đang bị khóa (file in use), hãy dừng process cũ bằng lệnh:
-  ```powershell
-  Stop-Process -Name MiniCourseCatalog.Mvc -ErrorAction SilentlyContinue
-  dotnet run
-  ```
+Mở terminal tại thư mục chứa file `.csproj`:
+
+```powershell
+cd E:\Nam_4\Hocki2\ASP_vscode\asp-lab03\MiniCourseCatalog.Mvc
+dotnet run
+```
+
+Sau đó mở URL được hiển thị trong terminal, ví dụ:
+
+```text
+http://localhost:5063
+```
+
+## Ghi chú
+
+- Dữ liệu hiện đang lưu trong `List<Course>` hard-code bên trong `CourseService`, phù hợp cho Lab03.
+- Khi tắt ứng dụng, dữ liệu thêm mới trong phiên chạy hiện tại sẽ mất vì chưa kết nối database.
+- Nếu trình duyệt chưa cập nhật CSS/HTML mới, nhấn `Ctrl + F5` để refresh mạnh.

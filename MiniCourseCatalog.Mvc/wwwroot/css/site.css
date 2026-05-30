@@ -589,3 +589,82 @@ body.theme-dark .hover-shadow:hover {
     background-color: #263449 !important;
     box-shadow: 0 .5rem 1.2rem rgba(0, 0, 0, .3) !important;
 }
+
+/* Thêm cho Lab03 */
+.course-card {
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+.course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, .12);
+    border-color: #bfdbfe;
+}
+
+.form-control,
+.form-select {
+    border-radius: .9rem;
+}
+
+.field-validation-error {
+    font-weight: 600;
+}
+
+.input-validation-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 .2rem rgba(220, 53, 69, .1) !important;
+}
+
+.validation-summary-errors {
+    border: 1px solid #fecaca;
+    background: #fff1f2;
+    padding: 1rem;
+    border-radius: .9rem;
+}
+
+body.theme-dark .course-card {
+    background: linear-gradient(180deg, rgba(15, 23, 42, .96), rgba(17, 24, 39, .94));
+    border-color: rgba(148, 163, 184, .2);
+    color: #e5e7eb;
+}
+
+body.theme-dark .form-control,
+body.theme-dark .form-select {
+    color: #e5e7eb;
+    background: rgba(15, 23, 42, .78);
+    border-color: rgba(148, 163, 184, .24);
+}
+
+body.theme-dark .form-control:focus,
+body.theme-dark .form-select:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 .25rem rgba(34, 211, 238, .14);
+}
+
+body.theme-dark .validation-summary-errors {
+    border-color: rgba(248, 113, 113, .35);
+    background: rgba(127, 29, 29, .28);
+}
+.navbar-theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.navbar-theme-toggle .modern-theme-switch {
+    transform: scale(.82);
+    transform-origin: right center;
+}
+
+@media (max-width: 575.98px) {
+    .navbar-theme-toggle {
+        justify-content: flex-start;
+        padding-left: .75rem;
+    }
+
+    .navbar-theme-toggle .modern-theme-switch {
+        transform-origin: left center;
+    }
+}

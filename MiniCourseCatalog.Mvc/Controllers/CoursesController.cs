@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using MiniCourseCatalog.Mvc.Models;
 using MiniCourseCatalog.Mvc.Services;
 using MiniCourseCatalog.Mvc.ViewModels;
 
@@ -131,5 +132,91 @@ public class CoursesController : Controller
     private static string NormalizeTheme(string theme)
     {
         return string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
+    }
+
+    [HttpGet]
+    public IActionResult Search(string keyword = "", string category = "", string theme = "light")
+    {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        var results = _courseService.Search(keyword, category)
+            .Select(c => new CourseListItemViewModel
+            {
+                Id = c.Id,
+                Code = c.Code,
+                Name = c.Name,
+                Category = c.Category,
+                Instructor = c.Instructor,
+                TuitionFee = c.TuitionFee,
+                CurrentEnrollment = c.CurrentEnrollment,
+                MaxCapacity = c.MaxCapacity
+            })
+            .ToList();
+
+        var viewModel = new CourseSearchViewModel
+        {
+            Keyword = keyword,
+            Category = category,
+            Theme = theme,
+            Categories = _courseService.GetCategories(),
+            Results = results
+        };
+
+        return View(viewModel);
+    }
+
+    [HttpGet]
+    public IActionResult Create(string theme = "light")
+    {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        var viewModel = new CourseCreateViewModel
+        {
+            StartDate = DateTime.Today,
+            MaxCapacity = 20
+        };
+
+        return View(viewModel);
+    }
+
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Create(CourseCreateViewModel viewModel, string theme = "light")
+    {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        if (viewModel.CurrentEnrollment > viewModel.MaxCapacity)
+        {
+            ModelState.AddModelError(
+                nameof(viewModel.CurrentEnrollment),
+                "Số học viên hiện tại không được lớn hơn sức chứa tối đa");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return View(viewModel);
+        }
+
+        var course = new Course
+        {
+            Code = viewModel.Code,
+            Name = viewModel.Name,
+            Category = viewModel.Category,
+            Instructor = viewModel.Instructor,
+            TuitionFee = viewModel.TuitionFee,
+            CurrentEnrollment = viewModel.CurrentEnrollment,
+            MaxCapacity = viewModel.MaxCapacity,
+            StartDate = viewModel.StartDate
+        };
+
+        _courseService.Add(course);
+
+        TempData["SuccessMessage"] = $"Đã thêm khóa học {course.Name} thành công.";
+
+        return RedirectToAction(nameof(Index), new { theme });
     }
 }

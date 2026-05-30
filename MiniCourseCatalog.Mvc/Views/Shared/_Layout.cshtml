@@ -1,43 +1,119 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Mini Training Center</title>
-    <script type="importmap"></script>
+
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/MiniCourseCatalog.Mvc.styles.css" asp-append-version="true" />
 </head>
+
 @{
     var theme = ViewData["Theme"]?.ToString() == "dark" ? "dark" : "light";
     var bodyClass = theme == "dark" ? "theme-dark" : "theme-light";
+    var nextTheme = theme == "light" ? "dark" : "light";
+    var themeButtonTitle = theme == "light" ? "Giao diện Tối" : "Giao diện Sáng";
 }
+
 <body class="@bodyClass">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white bg-opacity-75 backdrop-blur border-bottom box-shadow mb-4 app-navbar sticky-top">
             <div class="container-fluid px-4">
-                <a class="navbar-brand fw-extrabold text-primary" style="letter-spacing: -0.5px;" asp-area="" asp-controller="Home" asp-action="Index">
+                <a class="navbar-brand fw-extrabold text-primary"
+                   style="letter-spacing: -0.5px;"
+                   asp-controller="Home"
+                   asp-action="Index"
+                   asp-route-theme="@theme">
                     <i class="bi bi-mortarboard-fill me-2"></i>Mini Training Center
                 </a>
-                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+
+                <button class="navbar-toggler border-0 shadow-none"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent"
+                        aria-expanded="false"
+                        aria-label="Mở menu điều hướng">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1 ms-3">
+
+                <div class="navbar-collapse collapse d-sm-flex align-items-center justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 ms-sm-3">
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small" style="letter-spacing: 0.5px;" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small"
+                               style="letter-spacing: 0.5px;"
+                               asp-controller="Home"
+                               asp-action="Index"
+                               asp-route-theme="@theme">
+                                Trang chủ
+                            </a>
                         </li>
+
                         <li class="nav-item">
-                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small" style="letter-spacing: 0.5px;" asp-area="" asp-controller="Courses" asp-action="Index">Khóa học</a>
+                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small"
+                               style="letter-spacing: 0.5px;"
+                               asp-controller="Courses"
+                               asp-action="Index"
+                               asp-route-theme="@theme">
+                                Khóa học
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small"
+                               style="letter-spacing: 0.5px;"
+                               asp-controller="Courses"
+                               asp-action="Stats"
+                               asp-route-theme="@theme">
+                                Thống kê
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small"
+                               style="letter-spacing: 0.5px;"
+                               asp-controller="Courses"
+                               asp-action="Search"
+                               asp-route-theme="@theme">
+                                Tìm kiếm
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark fw-medium px-3 text-uppercase small"
+                               style="letter-spacing: 0.5px;"
+                               asp-controller="Courses"
+                               asp-action="Create"
+                               asp-route-theme="@theme">
+                                Thêm khóa học
+                            </a>
                         </li>
                     </ul>
+
+                    <div class="navbar-theme-toggle ms-sm-3 mt-3 mt-sm-0">
+                        <a href="?theme=@nextTheme"
+                           class="modern-theme-switch shadow-sm pointer"
+                           title="@themeButtonTitle"
+                           aria-label="@themeButtonTitle"
+                           data-theme-toggle
+                           data-next-theme="@nextTheme">
+                            <span class="switch-track @(theme == "dark" ? "track-dark" : "track-light")">
+                                <span class="switch-symbol switch-symbol-sun"></span>
+                                <span class="switch-symbol switch-symbol-moon"></span>
+                                <span class="switch-thumb @(theme == "dark" ? "thumb-dark" : "thumb-light")">
+                                    <span class="switch-thumb-icon"></span>
+                                </span>
+                            </span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -46,12 +122,19 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - Mini Training Center - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - Mini Training Center -
+            <a asp-controller="Home"
+               asp-action="Privacy"
+               asp-route-theme="@theme">
+                Quyền riêng tư
+            </a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
