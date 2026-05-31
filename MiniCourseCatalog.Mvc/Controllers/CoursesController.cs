@@ -189,11 +189,11 @@ public class CoursesController : Controller
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
-        if (viewModel.CurrentEnrollment > viewModel.MaxCapacity)
+        if (_courseService.ExistsSameClass(viewModel.Code, viewModel.Instructor, viewModel.StartDate))
         {
             ModelState.AddModelError(
-                nameof(viewModel.CurrentEnrollment),
-                "Số học viên hiện tại không được lớn hơn sức chứa tối đa");
+                nameof(viewModel.Code),
+                "Lớp học này đã tồn tại với cùng mã khóa học, giảng viên và ngày khai giảng.");
         }
 
         if (!ModelState.IsValid)

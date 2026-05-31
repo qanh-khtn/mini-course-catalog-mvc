@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MiniCourseCatalog.Mvc.ViewModels;
 
-public class CourseCreateViewModel
+public class CourseCreateViewModel : IValidatableObject
 {
     [Required(ErrorMessage = "Mã khóa học không được để trống")]
     [StringLength(20, ErrorMessage = "Mã khóa học tối đa 20 ký tự")]
+    [RegularExpression(@"^[A-Z]{2,4}-\d{3}$", ErrorMessage = "Mã khóa học phải có định dạng CHUỖI-SỐ, ví dụ: CS-101, MATH-005")]
     [Display(Name = "Mã khóa học")]
     public string Code { get; set; } = "";
 
@@ -37,4 +38,15 @@ public class CourseCreateViewModel
     [DataType(DataType.Date)]
     [Display(Name = "Ngày khai giảng")]
     public DateTime StartDate { get; set; } = DateTime.Today;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (CurrentEnrollment > MaxCapacity)
+        {
+            yield return new ValidationResult(
+                "Số học viên hiện tại không được lớn hơn sức chứa tối đa.",
+                new[] { nameof(CurrentEnrollment) }
+            );
+        }
+    }
 }

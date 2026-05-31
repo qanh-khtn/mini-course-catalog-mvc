@@ -135,6 +135,17 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
+    <script>
+        window.setTimeout(function () {
+            document.querySelectorAll(".alert.auto-dismiss").forEach(function (alert) {
+                alert.classList.remove("show");
+                window.setTimeout(function () {
+                    alert.remove();
+                }, 500);
+            });
+        }, 4000);
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

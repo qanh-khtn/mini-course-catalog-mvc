@@ -73,8 +73,6 @@ public class CourseService
         course.Id = nextId;
         _courses.Add(course);
     }
-
-    // Hàm Search
     public List<Course> Search(string keyword, string category)
     {
         var query = _courses.AsEnumerable();
@@ -95,8 +93,6 @@ public class CourseService
 
         return query.ToList();
     }
-
-    // Hàm lấy danh mục
     public List<string> GetCategories()
     {
         return _courses
@@ -104,5 +100,13 @@ public class CourseService
             .Distinct()
             .OrderBy(c => c)
             .ToList();
+    }
+
+    public bool ExistsSameClass(string code, string instructor, DateTime startDate)
+    {
+        return _courses.Any(c =>
+            string.Equals(c.Code?.Trim(), code?.Trim(), StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(c.Instructor?.Trim(), instructor?.Trim(), StringComparison.OrdinalIgnoreCase) &&
+            c.StartDate.Date == startDate.Date);
     }
 }
