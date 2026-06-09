@@ -1,53 +1,57 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using MiniCourseCatalog.Mvc.Models;
-using MiniCourseCatalog.Mvc.Services;
+using MiniCourseCatalog.Mvc.Services.Interfaces;
 using MiniCourseCatalog.Mvc.ViewModels;
 
 namespace MiniCourseCatalog.Mvc.Controllers;
 
 public class CoursesController : Controller
 {
-    private readonly CourseService _courseService;
+    private readonly ICourseService _courseService;
+    private readonly IEnrollmentService _enrollmentService;
+    private readonly IStudentService _studentService;
 
-    public CoursesController(CourseService courseService)
+    public CoursesController(
+        ICourseService courseService,
+        IEnrollmentService enrollmentService,
+        IStudentService studentService)
     {
-        _courseService = courseService; 
+        _courseService = courseService;
+        _enrollmentService = enrollmentService;
+        _studentService = studentService;
     }
 
-    public IActionResult Index(string keyword = "", string category = "", string theme = "light")
+    public async Task<IActionResult> Index(string keyword = "", string category = "", string theme = "light")
     {
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
-        var rawCourses = _courseService.GetAll();
+        var rawCourses = await _courseService.GetAllAsync();
         var categories = rawCourses
-            .Select(c => c.Category)
+            .Select(c => c.CourseCategory.Name)
             .Distinct()
             .OrderBy(c => c)
             .ToList();
 
-        var filteredCourses = rawCourses.AsEnumerable();
+        var filtered = rawCourses.AsEnumerable();
 
         if (!string.IsNullOrWhiteSpace(keyword))
-        {
-            filteredCourses = filteredCourses.Where(c =>
+            filtered = filtered.Where(c =>
                 c.Code.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
                 c.Name.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
                 c.Instructor.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-        }
 
         if (!string.IsNullOrWhiteSpace(category))
-        {
-            filteredCourses = filteredCourses.Where(c =>
-                string.Equals(c.Category, category, StringComparison.OrdinalIgnoreCase));
-        }
+            filtered = filtered.Where(c =>
+                string.Equals(c.CourseCategory.Name, category, StringComparison.OrdinalIgnoreCase));
 
-        var courseItems = filteredCourses.Select(c => new CourseListItemViewModel
+        var courseItems = filtered.Select(c => new CourseListItemViewModel
         {
             Id = c.Id,
             Code = c.Code,
             Name = c.Name,
-            Category = c.Category,
+            Category = c.CourseCategory.Name,
             Instructor = c.Instructor,
             TuitionFee = c.TuitionFee,
             CurrentEnrollment = c.CurrentEnrollment,
@@ -67,23 +71,21 @@ public class CoursesController : Controller
         return View(viewModel);
     }
 
-    public IActionResult Detail(int id, string theme = "light")
+    public async Task<IActionResult> Detail(int id, string theme = "light")
     {
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
-        var course = _courseService.GetById(id);
+        var course = await _courseService.GetByIdAsync(id);
         if (course == null)
-        {
-            return NotFound($"Không thể tìm thấy thông tin khóa học với mã ID = {id}"); 
-        }
+            return NotFound($"Không thể tìm thấy thông tin khóa học với mã ID = {id}");
 
         var detailVm = new CourseDetailViewModel
         {
             Id = course.Id,
             Code = course.Code,
             Name = course.Name,
-            Category = course.Category,
+            Category = course.CourseCategory.Name,
             Instructor = course.Instructor,
             TuitionFee = course.TuitionFee,
             CurrentEnrollment = course.CurrentEnrollment,
@@ -94,59 +96,28 @@ public class CoursesController : Controller
         return View(detailVm);
     }
 
-    public IActionResult Stats(string theme = "light")
+    public async Task<IActionResult> Stats(string theme = "light")
     {
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
-        var statsVm = _courseService.GetStats(); 
+        var statsVm = await _courseService.GetStatsAsync();
         return View(statsVm);
     }
 
-    public IActionResult Welcome()
-    {
-        return Content("Hệ thống quản lý đào tạo Mini Training Center xin chào học viên!"); 
-    }
-
-    public IActionResult CourseJson()
-    {
-        var data = _courseService.GetAll();
-        return Json(data); 
-    }
-
-    public IActionResult GoToList()
-    {
-        return RedirectToAction(nameof(Index)); 
-    }
-
-    public IActionResult Force404()
-    {
-        return NotFound("Đây là trang phản hồi mẫu 404 thử nghiệm từ hệ thống."); 
-    }
-
-    public IActionResult CategoryInfo()
-    {
-        return Content("Danh mục hiện có: Khoa học Cơ bản, Công nghệ Thông tin, AI & Data Science, Ngoại Ngữ, Marketing, Thiết kế đồ họa");
-    }
-
-    private static string NormalizeTheme(string theme)
-    {
-        return string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
-    }
-
     [HttpGet]
-    public IActionResult Search(string keyword = "", string category = "", string theme = "light")
+    public async Task<IActionResult> Search(string keyword = "", string category = "", string theme = "light")
     {
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
-        var results = _courseService.Search(keyword, category)
+        var results = (await _courseService.SearchAsync(keyword, category))
             .Select(c => new CourseListItemViewModel
             {
                 Id = c.Id,
                 Code = c.Code,
                 Name = c.Name,
-                Category = c.Category,
+                Category = c.CourseCategory.Name,
                 Instructor = c.Instructor,
                 TuitionFee = c.TuitionFee,
                 CurrentEnrollment = c.CurrentEnrollment,
@@ -159,7 +130,7 @@ public class CoursesController : Controller
             Keyword = keyword,
             Category = category,
             Theme = theme,
-            Categories = _courseService.GetCategories(),
+            Categories = await _courseService.GetCategoryNamesAsync(),
             Results = results
         };
 
@@ -167,29 +138,32 @@ public class CoursesController : Controller
     }
 
     [HttpGet]
-    public IActionResult Create(string theme = "light")
+    public async Task<IActionResult> Create(string theme = "light")
     {
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
+        var categories = await _courseService.GetCourseCategoriesAsync();
         var viewModel = new CourseCreateViewModel
         {
             StartDate = DateTime.Today,
-            MaxCapacity = 20
+            MaxCapacity = 20,
+            CategoryOptions = categories
+                .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+                .ToList()
         };
 
         return View(viewModel);
     }
 
-    
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Create(CourseCreateViewModel viewModel, string theme = "light")
+    public async Task<IActionResult> Create(CourseCreateViewModel viewModel, string theme = "light")
     {
         theme = NormalizeTheme(theme);
         ViewData["Theme"] = theme;
 
-        if (_courseService.ExistsSameClass(viewModel.Code, viewModel.Instructor, viewModel.StartDate))
+        if (await _courseService.ExistsSameClassAsync(viewModel.Code, viewModel.Instructor, viewModel.StartDate))
         {
             ModelState.AddModelError(
                 nameof(viewModel.Code),
@@ -198,6 +172,10 @@ public class CoursesController : Controller
 
         if (!ModelState.IsValid)
         {
+            var categories = await _courseService.GetCourseCategoriesAsync();
+            viewModel.CategoryOptions = categories
+                .Select(c => new SelectListItem(c.Name, c.Id.ToString()))
+                .ToList();
             return View(viewModel);
         }
 
@@ -205,7 +183,7 @@ public class CoursesController : Controller
         {
             Code = viewModel.Code,
             Name = viewModel.Name,
-            Category = viewModel.Category,
+            CourseCategoryId = viewModel.CourseCategoryId,
             Instructor = viewModel.Instructor,
             TuitionFee = viewModel.TuitionFee,
             CurrentEnrollment = viewModel.CurrentEnrollment,
@@ -213,10 +191,77 @@ public class CoursesController : Controller
             StartDate = viewModel.StartDate
         };
 
-        _courseService.Add(course);
-
-        TempData["SuccessMessage"] = $"Đã thêm khóa học {course.Name} thành công.";
-
+        await _courseService.AddAsync(course);
+        TempData["SuccessMessage"] = $"Đã thêm khóa học '{course.Name}' thành công.";
         return RedirectToAction(nameof(Index), new { theme });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Enroll(string theme = "light")
+    {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        var vm = await BuildEnrollViewModelAsync();
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Enroll(EnrollViewModel viewModel, string theme = "light")
+    {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        if (!ModelState.IsValid)
+        {
+            var fresh = await BuildEnrollViewModelAsync();
+            fresh.CourseId = viewModel.CourseId;
+            fresh.StudentId = viewModel.StudentId;
+            return View(fresh);
+        }
+
+        var (success, message) = await _enrollmentService.EnrollStudentAsync(viewModel.CourseId, viewModel.StudentId);
+
+        var vm = await BuildEnrollViewModelAsync();
+        vm.CourseId = viewModel.CourseId;
+        vm.StudentId = viewModel.StudentId;
+        vm.IsSuccess = success;
+        vm.ResultMessage = message;
+
+        return View(vm);
+    }
+
+    public IActionResult Welcome() =>
+        Content("Hệ thống quản lý đào tạo Mini Training Center xin chào học viên!");
+
+    public async Task<IActionResult> CourseJson() =>
+        Json(await _courseService.GetAllAsync());
+
+    public IActionResult GoToList() =>
+        RedirectToAction(nameof(Index));
+
+    public IActionResult Force404() =>
+        NotFound("Đây là trang phản hồi mẫu 404 thử nghiệm từ hệ thống.");
+
+    public IActionResult CategoryInfo() =>
+        Content("Xem danh mục tại /DataHealth");
+
+    private static string NormalizeTheme(string theme) =>
+        string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase) ? "dark" : "light";
+
+    private async Task<EnrollViewModel> BuildEnrollViewModelAsync()
+    {
+        var courses = await _courseService.GetAllAsync();
+        var students = await _studentService.GetAllAsync();
+        return new EnrollViewModel
+        {
+            CourseOptions = courses
+                .Select(c => new SelectListItem($"{c.Code} – {c.Name} ({c.CurrentEnrollment}/{c.MaxCapacity})", c.Id.ToString()))
+                .ToList(),
+            StudentOptions = students
+                .Select(s => new SelectListItem($"{s.FullName} ({s.Email})", s.Id.ToString()))
+                .ToList()
+        };
     }
 }

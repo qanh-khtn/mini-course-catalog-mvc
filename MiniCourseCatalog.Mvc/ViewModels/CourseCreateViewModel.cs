@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace MiniCourseCatalog.Mvc.ViewModels;
 
@@ -15,9 +16,11 @@ public class CourseCreateViewModel : IValidatableObject
     [Display(Name = "Tên khóa học")]
     public string Name { get; set; } = "";
 
-    [Required(ErrorMessage = "Chuyên ngành không được để trống")]
+    [Range(1, int.MaxValue, ErrorMessage = "Vui lòng chọn chuyên ngành")]
     [Display(Name = "Chuyên ngành")]
-    public string Category { get; set; } = "";
+    public int CourseCategoryId { get; set; }
+
+    public List<SelectListItem> CategoryOptions { get; set; } = new();
 
     [Required(ErrorMessage = "Giảng viên không được để trống")]
     [Display(Name = "Giảng viên")]

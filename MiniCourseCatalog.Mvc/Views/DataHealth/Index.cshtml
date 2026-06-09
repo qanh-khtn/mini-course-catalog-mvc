@@ -1,0 +1,74 @@
+@model DataHealthViewModel
+@{
+    ViewData["Title"] = "Kiểm Tra Database";
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold">Kiểm Tra Kết Nối Database</h2>
+        <p class="text-muted">Kiểm tra trạng thái AppDbContext và số lượng dữ liệu trong từng bảng.</p>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm rounded-4 border-0 p-4 @(Model.CanConnect ? "bg-success bg-opacity-10" : "bg-danger bg-opacity-10")">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi @(Model.CanConnect ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger") fs-2"></i>
+                    <div>
+                        <h5 class="fw-bold mb-1">
+                            Trạng thái kết nối:
+                            <span class="@(Model.CanConnect ? "text-success" : "text-danger")">
+                                @(Model.CanConnect ? "Kết nối thành công" : "Kết nối thất bại")
+                            </span>
+                        </h5>
+                        <p class="mb-0 text-muted small">Connection String: <code>@Model.DatabasePath</code></p>
+                        @if (!string.IsNullOrEmpty(Model.DbError))
+                        {
+                            <p class="text-danger mb-0 small mt-1"><strong>Lỗi:</strong> @Model.DbError</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.CanConnect)
+    {
+        <h5 class="fw-bold mb-3">Số lượng dữ liệu trong Database</h5>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card shadow-sm rounded-4 border-0 text-center p-3">
+                    <div class="display-6 fw-bold text-primary">@Model.CourseCategoryCount</div>
+                    <div class="text-muted small mt-1">CourseCategories</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm rounded-4 border-0 text-center p-3">
+                    <div class="display-6 fw-bold text-success">@Model.CourseCount</div>
+                    <div class="text-muted small mt-1">Courses</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm rounded-4 border-0 text-center p-3">
+                    <div class="display-6 fw-bold text-warning">@Model.StudentCount</div>
+                    <div class="text-muted small mt-1">Students</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card shadow-sm rounded-4 border-0 text-center p-3">
+                    <div class="display-6 fw-bold text-info">@Model.EnrollmentCount</div>
+                    <div class="text-muted small mt-1">Enrollments</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a asp-controller="Courses" asp-action="Enroll" class="btn app-btn app-btn-primary fw-bold px-4 me-2">
+                <i class="bi bi-person-plus me-2"></i>Thử đăng ký học viên
+            </a>
+            <a asp-controller="Enrollments" asp-action="History" class="btn app-btn app-btn-ghost fw-bold px-4">
+                <i class="bi bi-clock-history me-2"></i>Lịch sử đăng ký
+            </a>
+        </div>
+    }
+</div>
