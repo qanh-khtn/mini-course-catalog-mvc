@@ -26,12 +26,18 @@ public class DataHealthController : Controller
         try
         {
             vm.CanConnect = await _context.Database.CanConnectAsync();
+
             if (vm.CanConnect)
             {
                 vm.CourseCategoryCount = await _context.CourseCategories.CountAsync();
                 vm.CourseCount = await _context.Courses.CountAsync();
                 vm.StudentCount = await _context.Students.CountAsync();
                 vm.EnrollmentCount = await _context.Enrollments.CountAsync();
+
+                var applied = await _context.Database.GetAppliedMigrationsAsync();
+                var list = applied.ToList();
+                vm.MigrationApplied = list.Any();
+                vm.LastMigration = list.LastOrDefault() ?? "Chưa có";
             }
         }
         catch (Exception ex)

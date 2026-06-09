@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MiniCourseCatalog.Mvc.Data;
+using MiniCourseCatalog.Mvc.Filters;
 using MiniCourseCatalog.Mvc.Options;
 using MiniCourseCatalog.Mvc.Repositories;
 using MiniCourseCatalog.Mvc.Repositories.Interfaces;
@@ -8,7 +9,10 @@ using MiniCourseCatalog.Mvc.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add(new ThemeFilter());
+});
 
 // Options Pattern
 builder.Services.Configure<TrainingCenterConfig>(

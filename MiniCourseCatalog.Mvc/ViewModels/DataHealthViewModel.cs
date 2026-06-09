@@ -9,4 +9,6 @@ public class DataHealthViewModel
     public int StudentCount { get; set; }
     public int EnrollmentCount { get; set; }
     public string DatabasePath { get; set; } = "";
+    public string LastMigration { get; set; } = "";
+    public bool MigrationApplied { get; set; }
 }

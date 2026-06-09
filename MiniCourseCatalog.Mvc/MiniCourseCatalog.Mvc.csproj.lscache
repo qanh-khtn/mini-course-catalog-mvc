@@ -58,16 +58,20 @@ TemporaryDependencyNodeTargetIdentifier=net10.0
 
 [sourceFiles]
 Controllers/
+ CourseCategoriesController.cs
  CoursesController.cs
  DataHealthController.cs
  EnrollmentsController.cs
  HomeController.cs
 Data/AppDbContext.cs
+Filters/ThemeFilter.cs
 Migrations/
  20260609032301_InitialCreate.cs
  20260609032301_InitialCreate.Designer.cs
  20260609033400_SeedInitialData.cs
  20260609033400_SeedInitialData.Designer.cs
+ 20260609065148_AddMoreStudents.cs
+ 20260609065148_AddMoreStudents.Designer.cs
  AppDbContextModelSnapshot.cs
 Models/
  Course.cs
@@ -102,6 +106,7 @@ Services/
  StudentService.cs
 ViewModels/
  CategoryStatsViewModel.cs
+ CourseCategoryViewModel.cs
  CourseCreateViewModel.cs
  CourseDetailViewModel.cs
  CourseIndexViewModel.cs
@@ -490,15 +495,16 @@ C:/Program Files/dotnet/sdk/10.0.102/Sdks/Microsoft.NET.Sdk/analyzers/build/conf
 obj/Debug/net10.0/MiniCourseCatalog.Mvc.GeneratedMSBuildEditorConfig.editorconfig
 
 [additionalFiles]
-Views/Courses/
- Create.cshtml
- Detail.cshtml
- Enroll.cshtml
- Index.cshtml
- Search.cshtml
- Stats.cshtml
- _CourseStatusBadge.cshtml
 Views/
+ CourseCategories/Index.cshtml
+ Courses/
+  Create.cshtml
+  Detail.cshtml
+  Enroll.cshtml
+  Index.cshtml
+  Search.cshtml
+  Stats.cshtml
+  _CourseStatusBadge.cshtml
  DataHealth/Index.cshtml
  Enrollments/History.cshtml
  Home/
@@ -515,15 +521,16 @@ Views/
  _ViewStart.cshtml
 
 [dynamicFiles]
-Views/Courses/
- Create.cshtml
- Detail.cshtml
- Enroll.cshtml
- Index.cshtml
- Search.cshtml
- Stats.cshtml
- _CourseStatusBadge.cshtml
 Views/
+ CourseCategories/Index.cshtml
+ Courses/
+  Create.cshtml
+  Detail.cshtml
+  Enroll.cshtml
+  Index.cshtml
+  Search.cshtml
+  Stats.cshtml
+  _CourseStatusBadge.cshtml
  DataHealth/Index.cshtml
  Enrollments/History.cshtml
  Home/
