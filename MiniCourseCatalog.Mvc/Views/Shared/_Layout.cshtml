@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Mini Training Center — Hệ thống quản lý khóa học nội bộ" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#2563eb" />
     <title>@ViewData["Title"] - Mini Training Center</title>
 
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
@@ -82,27 +84,39 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="@NavCls("Courses","Create")"
-                               asp-controller="Courses" asp-action="Create" asp-route-theme="@theme">
-                                Thêm mới
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="@NavCls("CourseCategories","Index")"
-                               asp-controller="CourseCategories" asp-action="Index" asp-route-theme="@theme">
-                                Chuyên ngành
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="@NavCls("Courses","Enroll")"
                                asp-controller="Courses" asp-action="Enroll" asp-route-theme="@theme">
                                 Đăng ký
                             </a>
                         </li>
-                        <li class="nav-item">
-                            <a class="@NavCls("DataHealth","Index")"
-                               asp-controller="DataHealth" asp-action="Index" asp-route-theme="@theme">
-                                DB Health
+                        <li class="nav-item dropdown">
+                            <a class="nav-link text-uppercase small fw-medium dropdown-toggle @(ctrl is "CourseCategories" or "DataHealth" or "Enrollments" ? "active fw-bold" : "")"
+                               href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Quản trị
+                            </a>
+                            <ul class="dropdown-menu rounded-3 shadow-sm border-0 mt-2">
+                                <li>
+                                    <a class="dropdown-item small" asp-controller="CourseCategories" asp-action="Index" asp-route-theme="@theme">
+                                        <i class="bi bi-diagram-3 me-2 text-primary"></i>Chuyên ngành
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item small" asp-controller="Enrollments" asp-action="History" asp-route-theme="@theme">
+                                        <i class="bi bi-clock-history me-2 text-primary"></i>Lịch sử đăng ký
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item small" asp-controller="DataHealth" asp-action="Index" asp-route-theme="@theme">
+                                        <i class="bi bi-database-check me-2 text-primary"></i>DB Health
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item ms-sm-2">
+                            <a class="nav-link nav-cta"
+                               asp-controller="Courses" asp-action="Create" asp-route-theme="@theme">
+                                <i class="bi bi-plus-lg me-1"></i>Thêm mới
                             </a>
                         </li>
                     </ul>
@@ -132,6 +146,22 @@
         <main role="main" class="pb-4 page-fade-in">
             @RenderBody()
         </main>
+    </div>
+
+    @* Toast thông báo nổi góc phải — thay cho alert chiếm chỗ trong trang *@
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="toast app-toast align-items-center border-0" role="status" aria-live="polite" aria-atomic="true"
+                 data-bs-delay="4500" data-app-toast>
+                <div class="d-flex">
+                    <div class="toast-body fw-medium">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>@TempData["SuccessMessage"]
+                    </div>
+                    <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+                </div>
+            </div>
+        }
     </div>
 
     <footer class="border-top mt-2 py-3 app-footer">
@@ -166,6 +196,30 @@
                 document.body.classList.add("theme-animating");
             });
         });
+
+        // Show toasts
+        document.querySelectorAll("[data-app-toast]").forEach(function (el) {
+            bootstrap.Toast.getOrCreateInstance(el).show();
+        });
+
+        // Scroll reveal: card xuất hiện lần lượt khi cuộn tới
+        (function () {
+            var cards = document.querySelectorAll(".course-card, .stat-card, .category-card");
+            if (!("IntersectionObserver" in window)) return;
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) {
+                        e.target.classList.add("revealed");
+                        io.unobserve(e.target);
+                    }
+                });
+            }, { threshold: .1 });
+            cards.forEach(function (el, i) {
+                el.classList.add("reveal");
+                el.style.setProperty("--reveal-i", i % 6);
+                io.observe(el);
+            });
+        })();
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
