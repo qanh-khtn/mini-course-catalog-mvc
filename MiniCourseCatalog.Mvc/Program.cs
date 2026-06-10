@@ -14,9 +14,12 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new ThemeFilter());
 });
 
-// Options Pattern
-builder.Services.Configure<TrainingCenterConfig>(
-    builder.Configuration.GetSection(TrainingCenterConfig.SectionName));
+// Options Pattern — validate bằng Data Annotation ngay khi khởi động:
+// config sai (vd LowSeatThreshold = -5) thì app từ chối chạy thay vì lỗi ngầm lúc runtime
+builder.Services.AddOptions<TrainingCenterConfig>()
+    .Bind(builder.Configuration.GetSection(TrainingCenterConfig.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 // EF Core + SQLite (Scoped by default)
 builder.Services.AddDbContext<AppDbContext>(options =>
