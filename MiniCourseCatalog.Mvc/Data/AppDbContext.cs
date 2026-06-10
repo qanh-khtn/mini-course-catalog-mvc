@@ -41,6 +41,11 @@ public class AppDbContext : DbContext
             .Property(c => c.TuitionFee)
             .HasColumnType("decimal(18,2)");
 
+        // Optimistic concurrency: UPDATE chỉ thành công khi Version chưa bị request khác đổi
+        modelBuilder.Entity<Course>()
+            .Property(c => c.Version)
+            .IsConcurrencyToken();
+
         // --- Seed Data (migration: SeedInitialData) ---
         modelBuilder.Entity<CourseCategory>().HasData(
             new CourseCategory { Id = 1, Name = "Công nghệ Thông tin", Description = "Các khóa học về lập trình, phần mềm và hệ thống máy tính" },

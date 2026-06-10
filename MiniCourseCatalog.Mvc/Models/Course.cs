@@ -23,6 +23,10 @@ public class Course
     public int MaxCapacity { get; set; }
     public DateTime StartDate { get; set; }
 
+    // Concurrency token: tăng mỗi lần cập nhật sĩ số; 2 request cùng đọc một Version
+    // thì chỉ request commit trước thắng, request sau nhận DbUpdateConcurrencyException
+    public int Version { get; set; }
+
     public int CourseCategoryId { get; set; }
     public CourseCategory CourseCategory { get; set; } = null!;
 

@@ -130,6 +130,53 @@ public class EnrollmentServiceTests : IDisposable
         Assert.Equal(0, await _context.Enrollments.CountAsync(e => e.CourseId == 100));
     }
 
+    /// <summary>
+    /// Fake repository mô phỏng "người dùng khác" commit trước trong lúc request
+    /// hiện tại đang xử lý: bump Version của Course ngay trước khi lưu enrollment.
+    /// </summary>
+    private class ConcurrentWriteEnrollmentRepository : MiniCourseCatalog.Mvc.Repositories.Interfaces.IEnrollmentRepository
+    {
+        private readonly AppDbContext _context;
+        private readonly EnrollmentRepository _inner;
+
+        public ConcurrentWriteEnrollmentRepository(AppDbContext context)
+        {
+            _context = context;
+            _inner = new EnrollmentRepository(context);
+        }
+
+        public Task<List<Enrollment>> GetAllWithDetailsReadOnlyAsync() =>
+            _inner.GetAllWithDetailsReadOnlyAsync();
+
+        public Task<bool> IsAlreadyEnrolledAsync(int courseId, int studentId) =>
+            _inner.IsAlreadyEnrolledAsync(courseId, studentId);
+
+        public async Task AddAsync(Enrollment enrollment)
+        {
+            // Request "kia" thắng cuộc đua: Version trong DB không còn khớp bản đã đọc
+            await _context.Database.ExecuteSqlRawAsync(
+                "UPDATE Courses SET Version = Version + 1 WHERE Id = 100");
+            await _inner.AddAsync(enrollment);
+        }
+    }
+
+    [Fact]
+    public async Task EnrollStudentAsync_HaiRequestCungLuc_RequestSauBiTuChoi_KhongOversell()
+    {
+        // Arrange: repository mô phỏng request khác commit trước (Version bị đổi)
+        var service = new EnrollmentService(new ConcurrentWriteEnrollmentRepository(_context), _context);
+
+        // Act
+        var (success, message) = await service.EnrollStudentAsync(100, 100);
+
+        // Assert: bị từ chối bởi concurrency token, không lưu enrollment nào
+        Assert.False(success);
+        Assert.Contains("cùng lúc", message);
+
+        _context.ChangeTracker.Clear();
+        Assert.Equal(0, await _context.Enrollments.CountAsync(e => e.CourseId == 100));
+    }
+
     [Fact]
     public async Task EnrollStudentAsync_KhoaHocKhongTonTai_TuChoi()
     {

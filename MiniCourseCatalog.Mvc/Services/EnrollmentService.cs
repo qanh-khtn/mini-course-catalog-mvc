@@ -59,11 +59,19 @@ public class EnrollmentService : IEnrollmentService
 
             await _enrollmentRepository.AddAsync(enrollment);
             course.CurrentEnrollment++;  // Tracked — EF Core sẽ tự UPDATE
+            course.Version++;            // Concurrency token: UPDATE kèm WHERE Version = giá trị cũ
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
 
             return (true, $"Đăng ký thành công! Học viên '{student.FullName}' vào khóa '{course.Name}'.");
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // 2 request cùng đọc AvailableSeats rồi cùng trừ: request commit sau bị từ chối
+            // => rollback toàn bộ, không bị "oversell" chỗ ngồi
+            await transaction.RollbackAsync();
+            return (false, "Lớp vừa có người khác đăng ký cùng lúc. Vui lòng tải lại trang và thử lại.");
         }
         catch (Exception ex)
         {
