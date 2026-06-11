@@ -223,6 +223,14 @@ public class CoursesController : Controller
 
         var (success, message) = await _enrollmentService.EnrollStudentAsync(viewModel.CourseId, viewModel.StudentId);
 
+        if (success)
+        {
+            // PRG: redirect sau khi ghi thành công — toast hiện ở trang mới, F5 không submit lại form
+            TempData["SuccessMessage"] = message;
+            return RedirectToAction(nameof(Enroll), new { theme });
+        }
+
+        // Thất bại (hết chỗ / trùng / lỗi concurrency): giữ thông báo inline trên form
         var vm = await BuildEnrollViewModelAsync();
         vm.CourseId = viewModel.CourseId;
         vm.StudentId = viewModel.StudentId;
