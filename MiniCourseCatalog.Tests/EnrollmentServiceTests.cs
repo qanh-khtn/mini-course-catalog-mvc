@@ -8,10 +8,7 @@ using MiniCourseCatalog.Tests.Fakes;
 
 namespace MiniCourseCatalog.Tests;
 
-/// <summary>
-/// Test nghiệp vụ đăng ký khóa học (transaction nhiều bước) trên SQLite in-memory —
-/// database thật trong RAM nên transaction Commit/Rollback hoạt động như môi trường thật.
-/// </summary>
+
 public class EnrollmentServiceTests : IDisposable
 {
     private readonly SqliteConnection _connection;
