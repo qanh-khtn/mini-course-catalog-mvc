@@ -120,4 +120,20 @@ public class CourseService : ICourseService
 
     public async Task<bool> ExistsSameClassAsync(string code, string instructor, DateTime startDate) =>
         await _courseRepository.ExistsSameClassAsync(code, instructor, startDate);
+
+    public async Task<List<CourseListItemViewModel>> FilterAsync(int? categoryId, decimal? minFee, decimal? maxFee)
+    {
+        var courses = await _courseRepository.FilterAsync(categoryId, minFee, maxFee);
+        return courses.Select(c => new CourseListItemViewModel
+        {
+            Id = c.Id,
+            Code = c.Code,
+            Name = c.Name,
+            Category = c.CourseCategory.Name,
+            Instructor = c.Instructor,
+            TuitionFee = c.TuitionFee,
+            CurrentEnrollment = c.CurrentEnrollment,
+            MaxCapacity = c.MaxCapacity
+        }).ToList();
+    }
 }

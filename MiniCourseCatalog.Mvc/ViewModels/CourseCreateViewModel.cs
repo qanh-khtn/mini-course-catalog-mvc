@@ -44,11 +44,11 @@ public class CourseCreateViewModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (CurrentEnrollment > MaxCapacity)
+        if (StartDate.Date < DateTime.Today)
         {
             yield return new ValidationResult(
-                "Số học viên hiện tại không được lớn hơn sức chứa tối đa.",
-                new[] { nameof(CurrentEnrollment) }
+                "Ngày khai giảng không được là ngày trong quá khứ.",
+                new[] { nameof(StartDate) }
             );
         }
     }

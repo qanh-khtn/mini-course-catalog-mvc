@@ -13,4 +13,5 @@ public interface ICourseService
     Task<List<string>> GetCategoryNamesAsync();
     Task<List<CourseCategory>> GetCourseCategoriesAsync();
     Task<bool> ExistsSameClassAsync(string code, string instructor, DateTime startDate);
+    Task<List<CourseListItemViewModel>> FilterAsync(int? categoryId, decimal? minFee, decimal? maxFee);
 }

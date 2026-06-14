@@ -106,6 +106,29 @@ public class CoursesController : Controller
     }
 
     [HttpGet]
+    public async Task<IActionResult> Filter(int? categoryId, decimal? minFee, decimal? maxFee, string theme = "light")
+    {
+        theme = NormalizeTheme(theme);
+        ViewData["Theme"] = theme;
+
+        var categories = await _courseService.GetCourseCategoriesAsync();
+        var vm = new CourseFilterViewModel
+        {
+            CategoryId = categoryId,
+            MinFee = minFee,
+            MaxFee = maxFee,
+            Theme = theme,
+            Categories = categories,
+            HasSearched = categoryId.HasValue || minFee.HasValue || maxFee.HasValue
+        };
+
+        if (vm.HasSearched)
+            vm.Results = await _courseService.FilterAsync(categoryId, minFee, maxFee);
+
+        return View(vm);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Search(string keyword = "", string category = "", string theme = "light")
     {
         theme = NormalizeTheme(theme);

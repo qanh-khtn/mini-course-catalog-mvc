@@ -48,4 +48,23 @@ public class CourseRepository : ICourseRepository
                 c.Code.ToLower() == code.Trim().ToLower() &&
                 c.Instructor.ToLower() == instructor.Trim().ToLower() &&
                 c.StartDate.Date == startDate.Date);
+
+    public async Task<List<Course>> FilterAsync(int? categoryId, decimal? minFee, decimal? maxFee)
+    {
+        var query = _context.Courses
+            .Include(c => c.CourseCategory)
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (categoryId.HasValue)
+            query = query.Where(c => c.CourseCategoryId == categoryId.Value);
+
+        if (minFee.HasValue)
+            query = query.Where(c => c.TuitionFee >= minFee.Value);
+
+        if (maxFee.HasValue)
+            query = query.Where(c => c.TuitionFee <= maxFee.Value);
+
+        return await query.OrderBy(c => c.TuitionFee).ToListAsync();
+    }
 }

@@ -1,215 +1,185 @@
-﻿# Mini Training Center Course Catalog MVC
+# Mini Training Center Course Catalog MVC — Lab04
 
-Ứng dụng ASP.NET Core MVC quản lý danh mục khóa học cho một trung tâm đào tạo nhỏ. Project được phát triển tiếp từ Lab02 và nâng cấp theo yêu cầu Lab03: Layout, Partial View, Tag Helpers, Model Binding, form tìm kiếm GET, form thêm dữ liệu POST và validation bằng DataAnnotations.
+Ứng dụng ASP.NET Core MVC quản lý danh mục khóa học cho một trung tâm đào tạo nhỏ. Project được phát triển tiếp từ Lab03 và nâng cấp theo yêu cầu **Lab04**: xây dựng **Data Layer** rõ ràng với EF Core, dùng **database thật (SQLite)**, áp dụng **Dependency Injection**, **Service/Repository Pattern**, **Options Pattern**, **Migration/Seed Data** và nghiệp vụ nhiều bước có **Transaction (Commit/Rollback)**.
+
+> Nhánh thực hiện Lab04: `lab04-mini-course`
 
 ## Chủ Đề
 
-**Mini Training Center Course Catalog MVC**
-
-Hệ thống hỗ trợ xem danh sách khóa học, xem chi tiết lớp học, thống kê dữ liệu đào tạo, tìm kiếm khóa học và thêm khóa học mới thông qua form có kiểm tra dữ liệu.
+**Mini Training Center** — Hệ thống quản lý nội bộ trung tâm đào tạo: xem danh sách khóa học, xem chi tiết và quan hệ dữ liệu, thống kê doanh thu/sĩ số, và **đăng ký khóa học** (giảm số chỗ trống trong một transaction an toàn).
 
 ## Công Nghệ Sử Dụng
 
-- ASP.NET Core MVC
-- C#
-- Razor View Engine
-- Bootstrap 5
-- Bootstrap Icons
-- HTML, CSS, JavaScript
-- LINQ
-- DataAnnotations
+- ASP.NET Core MVC (.NET 10)
+- Entity Framework Core 10 + SQLite
+- Dependency Injection, Options Pattern
+- Repository Pattern, Service Layer
+- xUnit (Unit Test với Fake Repository)
+- Razor View Engine, Bootstrap 5, Chart.js
 
-## Cấu Trúc Chính
+## Kiến Trúc & Luồng Xử Lý
+
+Ứng dụng tuân theo luồng tách tầng rõ ràng:
+
+```text
+Controller → Service → Repository → DbContext → Database (SQLite)
+```
+
+- **Controller** chỉ nhận request và gọi Service, không query database trực tiếp.
+- **Service** chứa logic nghiệp vụ, map dữ liệu sang ViewModel.
+- **Repository** chịu trách nhiệm truy vấn EF Core.
+- **DbContext** (`AppDbContext`) quản lý phiên làm việc với database.
+
+## Cấu Trúc Thư Mục (Data Layer)
 
 ```text
 MiniCourseCatalog.Mvc
-├── Controllers
-│   ├── HomeController.cs
-│   └── CoursesController.cs
-├── Models
-│   └── Course.cs
-├── Services
-│   └── CourseService.cs
-├── ViewModels
-│   ├── CategoryStatsViewModel.cs
-│   ├── CourseCreateViewModel.cs
-│   ├── CourseDetailViewModel.cs
-│   ├── CourseIndexViewModel.cs
-│   ├── CourseListItemViewModel.cs
-│   ├── CourseSearchViewModel.cs
-│   └── CourseStatsViewModel.cs
-├── Views
-│   ├── Courses
-│   │   ├── Create.cshtml
-│   │   ├── Detail.cshtml
-│   │   ├── Index.cshtml
-│   │   ├── Search.cshtml
-│   │   ├── Stats.cshtml
-│   │   └── _CourseStatusBadge.cshtml
-│   ├── Home
-│   │   └── Index.cshtml
-│   └── Shared
-│       ├── _CourseCard.cshtml
-│       ├── _CourseSearchResultList.cshtml
-│       ├── _Layout.cshtml
-│       ├── _SearchFilterForm.cshtml
-│       └── _ValidationScriptsPartial.cshtml
-└── wwwroot
-    ├── css
-    └── js
+├── Controllers/          # CoursesController, CourseCategoriesController, EnrollmentsController, DataHealthController, HomeController
+├── Data/
+│   └── AppDbContext.cs   # DbSet, Fluent API mapping, Seed Data
+├── Models/               # Course, CourseCategory, Student, Enrollment
+├── Repositories/
+│   ├── Interfaces/       # ICourseRepository, IEnrollmentRepository, ...
+│   └── *.cs              # Implementation
+├── Services/
+│   ├── Interfaces/       # ICourseService, IEnrollmentService, ...
+│   └── *.cs              # Nghiệp vụ
+├── Options/
+│   └── TrainingCenterConfig.cs   # Cấu hình strongly-typed (Options Pattern)
+├── ViewModels/
+├── Migrations/           # InitialCreate, SeedInitialData, AddMoreStudents, AddCourseConcurrencyToken
+└── Views/
+
+MiniCourseCatalog.Tests/  # Project unit test (xUnit + Fake Repository)
 ```
 
-## Chức Năng Theo Yêu Cầu Lab03
+![Cấu trúc thư mục project](docs/images/folder.jpg)
 
-### Layout Dùng Chung
+## Mô Hình Dữ Liệu & Quan Hệ
 
-- Cập nhật `Views/Shared/_Layout.cshtml` làm layout chung cho toàn bộ website.
-- Menu điều hướng dùng Tag Helpers, gồm: Trang chủ, Khóa học, Thống kê, Tìm kiếm, Thêm khóa học.
-- Header, footer, CSS và nút chuyển giao diện sáng/tối được dùng chung trên các trang.
+Ứng dụng có **1 `AppDbContext`**, **4 Entity** và **3 Relationship**:
 
-### Partial View
+| Quan hệ | Loại | Ý nghĩa |
+|---|---|---|
+| `CourseCategory` → `Course` | One-to-Many | Một chuyên ngành có nhiều khóa học |
+| `Course` → `Enrollment` | One-to-Many | Một khóa học có nhiều lượt đăng ký |
+| `Student` → `Enrollment` | One-to-Many | Một học viên có nhiều lượt đăng ký |
 
-- Tạo `_CourseCard.cshtml` để hiển thị từng khóa học dưới dạng card.
-- Trang `/Courses` dùng Partial View để render danh sách khóa học thay vì bảng đơn giản.
-- Tạo `_CourseSearchResultList.cshtml` để tách phần hiển thị kết quả tìm kiếm.
-- Tạo `_SearchFilterForm.cshtml` để tái sử dụng form lọc nhanh.
+`Enrollment` là bảng trung gian thể hiện quan hệ Many-to-Many giữa `Course` và `Student`.
 
-### Trang Danh Sách Khóa Học
+## Các Yêu Cầu Lab04 Đã Thực Hiện
 
-- Route: `/Courses`
-- Hiển thị danh sách khóa học bằng card grid.
-- Mỗi card có mã khóa học, tên khóa học, chuyên ngành, giảng viên, học phí, sĩ số, trạng thái và nút xem chi tiết.
-- Sau khi thêm khóa học thành công, trang danh sách hiển thị thông báo bằng `TempData`.
+### Dependency Injection & Lifetime
 
-### Tìm Kiếm Khóa Học Bằng GET
+Đăng ký trong `Program.cs` với lifetime phù hợp:
 
-- Route: `/Courses/Search`
-- ViewModel: `CourseSearchViewModel`
-- Action: `CoursesController.Search(string keyword, string category, string theme)`
-- Form dùng phương thức `GET` và nhận dữ liệu từ Query String.
-- Hỗ trợ tìm theo mã khóa học, tên khóa học và giảng viên.
-- Hỗ trợ lọc theo chuyên ngành.
-- Nếu không có kết quả, hệ thống hiển thị thông báo cảnh báo thay vì để trang trống.
+- `AppDbContext`: **Scoped** (mặc định của `AddDbContext`) — mỗi request một instance.
+- Repository & Service: **Scoped** — cùng request chia sẻ chung `DbContext`, đảm bảo nhất quán transaction.
 
-### Thêm Khóa Học Bằng POST
+### Options Pattern
 
-- Route: `/Courses/Create`
-- ViewModel: `CourseCreateViewModel`
-- Có action GET để hiển thị form và action POST để nhận dữ liệu submit.
-- Form dùng Tag Helpers: `asp-for`, `asp-validation-for`, `asp-controller`, `asp-action`.
-- Form có các field: mã khóa học, tên khóa học, chuyên ngành, giảng viên, học phí, số học viên hiện tại, sức chứa tối đa, ngày khai giảng.
-- Dùng `ModelState.IsValid` để kiểm tra dữ liệu hợp lệ.
-- Sau khi thêm thành công, dùng `RedirectToAction(nameof(Index))` để quay về trang danh sách.
+`TrainingCenterConfig` (gồm `LowSeatThreshold`, `CenterName`) được bind từ `appsettings.json` và inject qua `IOptions<TrainingCenterConfig>`. Service đọc ngưỡng cảnh báo từ đây thay vì hard-code, nên đổi cấu hình không cần sửa code nghiệp vụ.
 
-## Tính Năng Mở Rộng
+### Migration, Update Database & Seed Data
 
-### Validation Nâng Cao
+- Các migration có tên rõ nghĩa: `InitialCreate`, `SeedInitialData`, `AddMoreStudents`, `AddCourseConcurrencyToken`.
+- Seed Data bằng `HasData`: 4 chuyên ngành, 4 khóa học, 15 học viên — đủ để kiểm tra danh sách, relationship và transaction.
 
-- Trường `Code` dùng `RegularExpression` để bắt buộc mã khóa học đúng định dạng, ví dụ `CS-101`, `ENG-005`, `MATH-005`.
-- `CourseCreateViewModel` kế thừa `IValidatableObject` để kiểm tra nghiệp vụ: số học viên hiện tại không được lớn hơn sức chứa tối đa.
-- `Create.cshtml` dùng `_ValidationScriptsPartial` để hỗ trợ client-side validation.
+### Tracking & AsNoTracking
 
-### Kiểm Tra Trùng Lớp Học
+- **AsNoTracking** cho truy vấn chỉ đọc (danh sách, chi tiết, tìm kiếm, lịch sử) — nhẹ và nhanh hơn.
+- **Tracking** cho nghiệp vụ cập nhật (đăng ký khóa học) để EF Core tự sinh `UPDATE` khi giảm số chỗ.
 
-- Hệ thống không chặn trùng mã khóa học tuyệt đối vì một khóa học có thể mở nhiều lớp khác nhau.
-- Hàm `ExistsSameClass()` trong `CourseService` chỉ báo trùng khi trùng đồng thời `Code`, `Instructor` và `StartDate`.
+### Transaction (Commit/Rollback)
 
-### Auto-Dismiss Alert
+Nghiệp vụ **đăng ký khóa học** (`EnrollmentService.EnrollStudentAsync`) bọc nhiều bước ghi trong một transaction: kiểm tra khóa học/học viên/còn chỗ/chưa trùng → thêm `Enrollment` + giảm số chỗ → `Commit`. Nếu bất kỳ bước nào lỗi → `Rollback` toàn bộ, không bao giờ rơi vào trạng thái nửa đúng nửa sai.
 
-- Sau khi thêm khóa học thành công, Controller lưu thông báo vào `TempData`.
-- JavaScript trong `_Layout.cshtml` tự động ẩn thông báo sau vài giây.
+## Kết Quả Chạy Ứng Dụng
 
-### Theme Switcher
+| Trang | Route | Mô tả |
+|---|---|---|
+| Trang chủ | `/` | Giới thiệu hệ thống |
+| Danh sách khóa học | `/Courses` | Lấy dữ liệu thật từ database (AsNoTracking) |
+| Chi tiết | `/Courses/Detail/{id}` | Hiển thị quan hệ khóa học – chuyên ngành |
+| Chuyên ngành | `/CourseCategories` | Quan hệ One-to-Many |
+| Đăng ký | `/Courses/Enroll` | Nghiệp vụ Transaction |
+| Thống kê | `/Courses/Stats` | Doanh thu, sĩ số, biểu đồ Chart.js |
+| Tìm kiếm | `/Courses/Search` | Lọc theo từ khóa và chuyên ngành |
+| Data Health | `/DataHealth` | Kiểm tra migration, seed, tracking, transaction |
 
-- Ứng dụng hỗ trợ chuyển giao diện sáng/tối bằng tham số `theme` trên URL.
-- Controller chuẩn hóa giá trị theme và truyền sang View bằng `ViewData`.
-- Nút chuyển sáng/tối được đặt trong Layout nên dùng chung trên nhiều trang.
+### Danh sách khóa học (dữ liệu thật từ database)
 
-### Thống Kê Nâng Cao
+![Danh sách khóa học](docs/images/web_courses.jpg)
 
-- Tính tổng doanh thu dự kiến.
-- Tính tổng số học viên.
-- Tính tỷ lệ lấp đầy trung bình toàn trung tâm.
-- Xác định giảng viên tiêu biểu bằng LINQ.
-- Thống kê theo chuyên ngành: số lớp, số học viên, sức chứa, doanh thu và tỷ lệ lấp đầy.
+### Quan hệ One-to-Many (Chuyên ngành – Khóa học)
 
-## Chức Năng Từ Lab02 Vẫn Giữ Lại
+![Trang chuyên ngành](docs/images/web_course_categories.jpg)
 
-- Trang chủ giới thiệu hệ thống.
-- Trang chi tiết khóa học: `/Courses/Detail/{id}`.
-- Trang thống kê: `/Courses/Stats`.
-- Action trả về text bằng `Content()`: `/Courses/Welcome`.
-- Action trả về JSON bằng `Json()`: `/Courses/CourseJson`.
-- Action chuyển hướng bằng `RedirectToAction()`: `/Courses/GoToList`.
-- Action xử lý không tìm thấy dữ liệu bằng `NotFound()`: `/Courses/Detail/999` và `/Courses/Force404`.
+### Transaction đăng ký — Commit thành công
 
-## Các URL Kiểm Thử
+![Đăng ký thành công](docs/images/web_courses_enroll_2_2.jpg)
 
-```text
-/
-/Courses
-/Courses?theme=dark
-/Courses/Detail/1
-/Courses/Detail/999
-/Courses/Stats
-/Courses/Search
-/Courses/Search?keyword=data
-/Courses/Search?keyword=xyzabc
-/Courses/Search?category=Marketing
-/Courses/Create
-/Courses/Welcome
-/Courses/CourseJson
-/Courses/GoToList
-/Courses/Force404
-/Courses/CategoryInfo
+### Transaction đăng ký — Rollback khi lớp đã đầy
+
+![Rollback khi lớp đầy](docs/images/web_courses_enroll_3_2.jpg)
+
+### Trang Data Health
+
+![Data Health](docs/images/web_data_health.jpg)
+
+## Tính Năng Mở Rộng (Làm Thêm)
+
+### 1. Unit Test thật với xUnit + Fake Repository
+
+Project `MiniCourseCatalog.Tests` với các Fake Repository (`FakeCourseRepository`, `ThrowingEnrollmentRepository`) chứng minh kiến trúc đã tách dependency. 11 test theo Arrange–Act–Assert kiểm chứng: doanh thu/tỷ lệ lấp đầy, ngưỡng Options, đăng ký thành công, lớp đầy bị từ chối, đăng ký trùng, và **Rollback khi lỗi giữa transaction**.
+
+```powershell
+dotnet test
 ```
 
-## Ảnh Minh Chứng
+![Kết quả unit test](docs/images/dotnet_test.jpg)
 
-Các ảnh chụp kết quả chạy ứng dụng được lưu trong:
+### 2. Validate Options khi khởi động (ValidateOnStart)
 
-```text
-screenshots-lab03
-screenshots-lab03-extra
-```
+`TrainingCenterConfig` được gắn `[Range(1,100)]`, `[Required]` và đăng ký `ValidateDataAnnotations().ValidateOnStart()`. Cấu hình sai (ví dụ `LowSeatThreshold = -5`) khiến app **từ chối khởi động** thay vì chạy sai âm thầm.
 
-Một số ảnh quan trọng:
+![Options validation chặn khởi động khi config sai](docs/images/II_B1_options_invalid_crash.jpg)
 
-- `screenshots-lab03/01-home.png`: Trang chủ.
-- `screenshots-lab03/02-courses-card-list.png`: Danh sách khóa học dạng card.
-- `screenshots-lab03/03-search-page.png`: Trang tìm kiếm.
-- `screenshots-lab03/06-create-form.png`: Form thêm khóa học.
-- `screenshots-lab03/07-stats-dashboard.png`: Dashboard thống kê.
-- `screenshots-lab03-extra/extra-01-invalid-code-validation.png`: Lỗi mã khóa học sai định dạng.
-- `screenshots-lab03-extra/extra-02-invalid-capacity-validation.png`: Lỗi sĩ số lớn hơn sức chứa.
-- `screenshots-lab03-extra/extra-03-duplicate-class-validation.png`: Lỗi trùng lớp học.
-- `screenshots-lab03-extra/extra-04-create-success-alert.png`: Thêm thành công và hiển thị alert.
-- `screenshots-lab03-extra/extra-05-auto-dismiss-after-4s.png`: Alert tự động biến mất.
-- `screenshots-lab03-extra/extra-06-search-no-result.png`: Không tìm thấy kết quả tìm kiếm.
+### 3. Concurrency Token chống bán vượt số chỗ (oversell)
+
+Thêm cột `Version` vào `Course` với `IsConcurrencyToken()` + migration `AddCourseConcurrencyToken`. Khi hai người tranh chỗ cuối cùng, request commit sau nhận `DbUpdateConcurrencyException` và bị Rollback, đảm bảo không vượt số chỗ tối đa.
+
+![Danh sách migration có AddCourseConcurrencyToken](docs/images/II_C1_migrations_list.jpg)
+
+### 4. Biểu đồ thống kê bằng Chart.js
+
+Trang `/Courses/Stats` có biểu đồ cột doanh thu theo chuyên ngành và biểu đồ tròn tỷ lệ lấp đầy, kèm count-up. Dữ liệu đi đúng luồng `Service → ViewModel → View`.
+
+![Thống kê với Chart.js](docs/images/II_D1_stats_light.jpg)
+
+### 5. Hiện đại hóa giao diện
+
+Course Card với dải màu theo chuyên ngành, thanh tiến trình sĩ số đổi màu theo mức lấp đầy, price tag học phí; toast thông báo theo mô hình PRG; navbar có dropdown quản trị; design tokens cho theme sáng/tối.
+
+![Course Card phiên bản mới](docs/images/II_D3_course_cards.jpg)
 
 ## Hướng Dẫn Chạy Project
 
-Mở terminal tại thư mục chứa file `.csproj`:
-
 ```powershell
-cd E:\Nam_4\Hocki2\ASP_vscode\asp-lab03\MiniCourseCatalog.Mvc
-dotnet run
+# 1. Khôi phục & cập nhật database
+dotnet ef database update --project MiniCourseCatalog.Mvc
+
+# 2. Chạy ứng dụng
+dotnet run --project MiniCourseCatalog.Mvc
+
+# 3. Chạy unit test
+dotnet test
 ```
 
-Sau đó mở URL được hiển thị trong terminal, ví dụ:
-
-```text
-http://localhost:5063
-```
-
-Có thể kiểm tra build bằng:
-
-```powershell
-dotnet build
-```
+Sau đó mở URL hiển thị trong terminal (ví dụ `http://localhost:5063`).
 
 ## Ghi Chú
 
-- Dữ liệu hiện đang lưu trong `List<Course>` hard-code bên trong `CourseService`, phù hợp cho phạm vi Lab03.
-- Khi tắt ứng dụng, dữ liệu thêm mới trong phiên chạy hiện tại sẽ mất vì chưa kết nối database.
+- Dữ liệu được lưu trong database SQLite (`MiniCourseCatalog.db`), không còn mất khi tắt ứng dụng như Lab03.
+- Toàn bộ nghiệp vụ ghi dữ liệu nhiều bước đều được bọc trong transaction để đảm bảo toàn vẹn.
 - Nếu trình duyệt chưa cập nhật CSS/HTML mới, nhấn `Ctrl + F5` để refresh mạnh.

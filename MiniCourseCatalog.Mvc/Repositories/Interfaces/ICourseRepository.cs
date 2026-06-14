@@ -11,4 +11,5 @@ public interface ICourseRepository
     Task AddAsync(Course course);
     Task SaveChangesAsync();
     Task<bool> ExistsSameClassAsync(string code, string instructor, DateTime startDate);
+    Task<List<Course>> FilterAsync(int? categoryId, decimal? minFee, decimal? maxFee);
 }
