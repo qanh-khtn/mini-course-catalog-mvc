@@ -47,4 +47,20 @@ public class FakeCourseRepository : ICourseRepository
     public Task<bool> ExistsSameClassAsync(string code, string instructor, DateTime startDate) =>
         Task.FromResult(_courses.Any(c =>
             c.Code == code && c.Instructor == instructor && c.StartDate.Date == startDate.Date));
+
+    public Task<List<Course>> FilterAsync(int? categoryId, decimal? minFee, decimal? maxFee)
+    {
+        var query = _courses.AsEnumerable();
+
+        if (categoryId.HasValue)
+            query = query.Where(c => c.CourseCategoryId == categoryId.Value);
+
+        if (minFee.HasValue)
+            query = query.Where(c => c.TuitionFee >= minFee.Value);
+
+        if (maxFee.HasValue)
+            query = query.Where(c => c.TuitionFee <= maxFee.Value);
+
+        return Task.FromResult(query.OrderBy(c => c.TuitionFee).ToList());
+    }
 }
